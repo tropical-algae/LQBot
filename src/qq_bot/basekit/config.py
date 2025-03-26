@@ -4,14 +4,22 @@ from pydantic_settings import BaseSettings
 
 
 class SysSetting(BaseSettings):
-    # FastAPI
     PROJECT_NAME: str = "QQ BOT"
     DEBUG: bool = True
     QQBOT_APPID: str = ""
     QQBOT_SECRET: str = ""
+    # PUBLIC_IP_ADDRESS: str = ""
     
     VECTOR_QUERY_GPT_PROMPT: str = "prompts/vector_query_prompt.yaml"
     CHIT_CHAT_GPT_PROMPT: str = "prompts/chit_chat_prompt.yaml"
+    
+    JM_CACHE_ROOT: str = "./cache/jm"
+    JM_OPTION: str = "./configs/jm/option.yml"
+    
+    LOCAL_PROMPT_ROOT: str = "./configs/llm"
+    
+    RANDOM_PIC_CACHE_ROOT: str = "./cache/random_pic"
+    RANDOM_PIC_API: str = ""
     
 
 class DBSetting(BaseSettings):
@@ -27,13 +35,14 @@ class DBSetting(BaseSettings):
     BOT_COMMAND_GROUP_CHAT: str = "聊天"
     BOT_COMMAND_GROUP_QUERY: str = "询问"
     BOT_COMMAND_GROUP_RECORD: str = "悄悄话"
+    BOT_COMMAND_GROUP_JM_CHECK: str = "jm"
+    BOT_COMMAND_GROUP_RANDOM_PIC: str = "来点二次元"
+    
     DB_GROUP_TYPE_MAPPING: dict[str, str] = {
         BOT_COMMAND_GROUP_CHAT: "group_chat",
         BOT_COMMAND_GROUP_QUERY: "group_within_query",
         BOT_COMMAND_GROUP_RECORD: "group_within_record"
     }
-    
-    
     
     # vector db
     VECTOR_STORE_URL: str = ""
@@ -41,7 +50,14 @@ class DBSetting(BaseSettings):
     VECTOR_STORE_NAME: str = ""
     
     VECTOR_SELECT_TOP_K: int = 4
-    VECTOR_SELECT_THRESHOLD: float = 0.55
+    VECTOR_SELECT_THRESHOLD: float = 0.5
+    
+    # minio
+    MINIO_ENDPOINT: str = ""
+    MINIO_ACCESS_KEY: str = ""
+    MINIO_SCCRET_KEY: str = ""
+    MINIO_JM_BOCKET_NAME: str = "jm-repertory"
+    MINIO_RANDOM_PIC_BOCKET_NAME: str = "random-pic"
 
 
 class LogSetting(BaseSettings):

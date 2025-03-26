@@ -4,7 +4,7 @@ from llama_index.core import Document, VectorStoreIndex
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.vector_stores.types import MetadataFilters
 
-from qq_bot.common.models import GroupMessageRecord
+from qq_bot.basekit.models import GroupMessageRecord
 from qq_bot.db.vector.base import storage_context, embed_model, vector_store
 
 def insert_text_embedding(messages: list[GroupMessageRecord] | GroupMessageRecord):

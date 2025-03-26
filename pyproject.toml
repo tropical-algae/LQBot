@@ -7,7 +7,6 @@ authors = ["AAA <AAA@test.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = "^0.112.0"
 uvicorn = "0.30.5"
 pydantic = {extras = ["email"], version = "^2.9.2"}
 requests = "^2.32.0"
@@ -19,7 +18,6 @@ colorlog = "^6.8.2"
 pytz = "^2024.1"
 openai = "^1.38.0"
 pyyaml = "^6.0.1"
-alembic = "^1.13.2"
 pymysql = "^1.1.1"
 sqlalchemy = "^2.0.32"
 passlib = "^1.7.4"
@@ -31,6 +29,9 @@ llama-index-vector-stores-milvus = "^0.5.0"
 llama-index = "^0.12.8"
 qq-botpy = "^1.2.1"
 cachetools = "^5.5.0"
+jmcomic = "^2.5.32"
+minio = "^7.2.15"
+pillow = "^11.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2"

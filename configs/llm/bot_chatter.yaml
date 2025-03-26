@@ -1,0 +1,8 @@
+activate: true
+default_reply: 你好
+model: gpt-3.5-turbo-ca
+version: prompt_v1
+system_prompt: 你是一个善良、可爱的猫咪小姐
+prompts: 
+  prompt_v1: |
+    请回复我的消息，回复长度不超过30字：${text}

@@ -1,18 +1,19 @@
+import asyncio
+import functools
+import inspect
 import json
 import os
 import re
 
 import yaml
-from fastapi import HTTPException
+from PIL import Image
 from botpy.message import GroupMessage, Message
-from qq_bot.common.models import GroupMessageRecord
+from qq_bot.basekit.models import GroupMessageRecord
 from qq_bot.db.sql.models import GroupBotMessage
+from qq_bot.basekit.logging import logger
 
 
-def generate_filepath(filename: str, filepath: str) -> str:
-    if not os.path.isdir(filepath):
-        os.makedirs(filepath)
-    return os.path.join(filepath, filename)
+
 
 
 def load_yaml(yaml_path: str) -> dict:
@@ -23,16 +24,15 @@ def load_yaml(yaml_path: str) -> dict:
         raise Exception(f"[YAML Reader] Error occured when read YAML from path '{yaml_path}'. Error: {err}") from err
 
 
-def parse_text_2_json(text: str) -> tuple[dict[str, str], str]:
+def parse_text_2_json(text: str) -> dict[str, str] | None:
     text = text.replace("```json\n", "").replace("\n```", "").replace("\n", "")
     try:
         json_matches = re.compile(r"\{.*?\}").findall(text)
         for match in json_matches:
             text_json = json.loads(match)
-            return text_json, "Successly parse text to json."
-        raise HTTPException(status_code=500, detail="Exception: Can not parse text to json.")
+            return text_json
     except Exception as err:
-        raise HTTPException(status_code=500, detail=f"Exception: {err}") from err
+        return None
 
 
 def groupchat_query_keywords_replace(
@@ -128,3 +128,73 @@ def encapsulated_bot_group_reply(info: dict, content: str, group_id: str) -> Gro
 def cut_sentences_with_id(sentences: list[str]) -> str:
     result = "\n".join([f"{i}.{s}" for i, s in enumerate(sentences)])
     return result
+
+
+def stitched_images(images: list[Image.Image]) -> Image.Image | None: 
+    if len(images) > 0:
+        width = 1024
+        
+        new_images = []
+        for image in images:
+            w, h = image.size
+            new_images.append(image.resize((width, int(h * width / w)), Image.LANCZOS))
+        
+        
+        # width, _ = images[0].size
+        mode = new_images[0].mode
+        height = sum(i.size[1] for i in new_images)
+        
+        result = Image.new(mode=mode, size=(width, height))
+        
+        current_height = 0
+        for i, image in enumerate(new_images):
+            result.paste(image, box=(0, current_height))
+            current_height += image.size[1]
+        return result
+
+
+def function_retry(times=None):
+    def decorator(func):
+        is_coroutine = asyncio.iscoroutinefunction(func)
+
+        @functools.wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            is_method = len(args) > 0 and inspect.isclass(type(args[0]))
+            max_times = getattr(args[0], 'times', 3) if is_method else (times or 3)
+            
+            self = args[0] if is_method else None
+            func_path = f"{type(self).__name__ + '.' if self else ''}{func.__name__}"
+            
+
+            for attempt in range(1, max_times + 1):
+                result = await func(*args, **kwargs)
+                if result is not None:
+                    return result
+                logger.warning(f"RETRY[{attempt}/{max_times}]: function -> {func_path}")
+            logger.warning(f"RETRY CAN NOT FIX ERROR: function -> {func_path}")
+            return None
+
+        @functools.wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            is_method = len(args) > 0 and inspect.isclass(type(args[0]))
+            max_times = getattr(args[0], 'times', 3) if is_method else (times or 3)
+            
+            self = args[0] if is_method else None
+            func_path = f"{type(self).__name__ + '.' if self else ''}{func.__name__}"
+
+            for attempt in range(1, max_times + 1):
+                result = func(*args, **kwargs)
+                if result is not None:
+                    return result
+                logger.warning(f"RETRY[{attempt}/{max_times}]: function -> {func_path}")
+            logger.warning(f"RETRY CAN NOT FIX ERROR: function -> {func_path}")
+            return None
+
+        return async_wrapper if is_coroutine else sync_wrapper
+
+    if callable(times):
+        func = times
+        times = None
+        return decorator(func)
+
+    return decorator

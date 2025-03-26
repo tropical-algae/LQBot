@@ -1,7 +1,7 @@
 import uuid
 from sqlmodel import Session, select
 from typing import Literal
-from qq_bot.common.models import GroupMessageRecord
+from qq_bot.basekit.models import GroupMessageRecord
 from qq_bot.db.sql.crud.message_type_crud import get_message_type_id_by_name
 from qq_bot.db.sql.models import GroupBotMessage, GroupChatMessage, GroupQueryRecordRelation, MessageType
 

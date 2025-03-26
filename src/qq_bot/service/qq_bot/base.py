@@ -1,12 +1,12 @@
 import botpy
 from botpy.message import GroupMessage, Message
-from qq_bot.common.logging import logger
-from qq_bot.service.qq_bot.bot_chat import group_chit_chat
-from qq_bot.service.qq_bot.bot_command import group_insert, group_select
+from qq_bot.basekit.logging import logger
+from qq_bot.service.qq_bot.bot_server import group_chit_chat
+from qq_bot.service.qq_bot.bot_command import group_insert, group_jm_pic, group_select
 
 class QQBotClient(botpy.Client):
     async def on_ready(self):
-        self.group_command = [group_select, group_insert]
+        self.group_command = [group_select, group_insert, group_jm_pic]
         logger.info(f"robot 「{self.robot.name}」 on_ready!")
 
     async def command_group_replay(self, message: GroupMessage) -> bool:

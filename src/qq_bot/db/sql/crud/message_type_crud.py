@@ -2,8 +2,8 @@ from cachetools.keys import hashkey
 from cachetools import LRUCache, cached
 from sqlmodel import Session, select
 from qq_bot.db.sql.models import MessageType
-from qq_bot.common.logging import logger
-from qq_bot.common.config import settings
+from qq_bot.basekit.logging import logger
+from qq_bot.basekit.config import settings
 
 
 _msg_type_cache: LRUCache[str, str] = LRUCache(maxsize=1024 * 10)

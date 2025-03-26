@@ -1,7 +1,7 @@
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel, Session, create_engine, select
-from qq_bot.common.logging import logger
-from qq_bot.common.config import settings
+from qq_bot.basekit.logging import logger
+from qq_bot.basekit.config import settings
 from qq_bot.db.sql.crud.message_type_crud import insert_default_msg_type
 
 

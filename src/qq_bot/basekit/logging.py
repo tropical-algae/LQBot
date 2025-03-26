@@ -5,8 +5,8 @@ import time
 
 from uvicorn.config import LOGGING_CONFIG
 
-from qq_bot.common.config import settings
-from qq_bot.common.util import generate_filepath
+from qq_bot.basekit.config import settings
+
 
 FILE_HANDLER_NAME = "file"
 CONSOLE_HANDLER_NAME = "console"
@@ -18,6 +18,12 @@ LOG_COLOR_CONFIG = {
     "ERROR": "red",
     "CRITICAL": "bold_red",
 }
+
+
+def generate_filepath(filename: str, filepath: str) -> str:
+    if not os.path.isdir(filepath):
+        os.makedirs(filepath)
+    return os.path.join(filepath, filename)
 
 
 def set_handler_no_color(config: dict, formatter_key: str, handlers_key: str, **kwargs) -> None:
@@ -93,10 +99,16 @@ def get_system_logger_config(filename: str) -> dict:
     return logging_config
 
 
-def get_logger() -> logging.Logger:
-    filename = generate_filepath(
-        filename=f'{settings.PROJECT_NAME.replace(" ", "")}-{time.strftime("%Y-%m-%d", time.localtime())}.log',
+def get_logger_absolute_path(filename: str):
+    return generate_filepath(
+        filename=f'{filename}-{time.strftime("%Y-%m-%d", time.localtime())}.log',
         filepath=os.path.join(os.getcwd(), settings.LOG_PATH),
+    )
+
+
+def get_logger() -> logging.Logger:
+    filename = get_logger_absolute_path(
+        filename=settings.PROJECT_NAME.replace(" ", "")
     )
     logging_config = get_system_logger_config(filename=filename)
     logging.config.dictConfig(logging_config)
