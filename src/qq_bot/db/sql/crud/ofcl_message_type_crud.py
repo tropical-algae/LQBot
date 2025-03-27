@@ -1,7 +1,7 @@
 from cachetools.keys import hashkey
 from cachetools import LRUCache, cached
 from sqlmodel import Session, select
-from qq_bot.db.sql.models import MessageType
+from qq_bot.db.sql.models import OfficialMessageType
 from qq_bot.basekit.logging import logger
 from qq_bot.basekit.config import settings
 
@@ -11,18 +11,18 @@ _msg_type_cache: LRUCache[str, str] = LRUCache(maxsize=1024 * 10)
 
 @cached(_msg_type_cache, key=lambda db, name: str(hashkey(name)))  # noqa
 def get_message_type_id_by_name(db: Session, name: str) -> str | None:
-    result = db.exec(select(MessageType.id).where(MessageType.name == name)).first()
+    result = db.exec(select(OfficialMessageType.id).where(OfficialMessageType.name == name)).first()
     return str(result) if result else None
 
 
-def get_all_message_type(db: Session) -> list[MessageType]:
-    result = db.exec(select(MessageType)).all()
+def get_all_message_type(db: Session) -> list[OfficialMessageType]:
+    result = db.exec(select(OfficialMessageType)).all()
     return list(result)
 
 
 def insert_message_types(db: Session, names: list[str]) -> None:
     if len(names) > 0:
-        msg_types = [MessageType(name=name) for name in names]
+        msg_types = [OfficialMessageType(name=name) for name in names]
         db.add_all(msg_types)
         db.commit()
         for msg_type in msg_types:

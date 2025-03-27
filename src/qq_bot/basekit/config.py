@@ -8,7 +8,6 @@ class SysSetting(BaseSettings):
     DEBUG: bool = True
     QQBOT_APPID: str = ""
     QQBOT_SECRET: str = ""
-    # PUBLIC_IP_ADDRESS: str = ""
     
     VECTOR_QUERY_GPT_PROMPT: str = "prompts/vector_query_prompt.yaml"
     CHIT_CHAT_GPT_PROMPT: str = "prompts/chit_chat_prompt.yaml"
@@ -19,7 +18,8 @@ class SysSetting(BaseSettings):
     LOCAL_PROMPT_ROOT: str = "./configs/llm"
     
     RANDOM_PIC_CACHE_ROOT: str = "./cache/random_pic"
-    RANDOM_PIC_API: str = ""
+    RANDOM_PIC_API_v1: str = ""
+    RANDOM_PIC_API_v2: str = ""
     
 
 class DBSetting(BaseSettings):
@@ -32,17 +32,6 @@ class DBSetting(BaseSettings):
     DEFAULT_SUPERUSER_PASSWD: str = "admin"
     
     # sql data
-    BOT_COMMAND_GROUP_CHAT: str = "聊天"
-    BOT_COMMAND_GROUP_QUERY: str = "询问"
-    BOT_COMMAND_GROUP_RECORD: str = "悄悄话"
-    BOT_COMMAND_GROUP_JM_CHECK: str = "jm"
-    BOT_COMMAND_GROUP_RANDOM_PIC: str = "来点二次元"
-    
-    DB_GROUP_TYPE_MAPPING: dict[str, str] = {
-        BOT_COMMAND_GROUP_CHAT: "group_chat",
-        BOT_COMMAND_GROUP_QUERY: "group_within_query",
-        BOT_COMMAND_GROUP_RECORD: "group_within_record"
-    }
     
     # vector db
     VECTOR_STORE_URL: str = ""
@@ -58,6 +47,7 @@ class DBSetting(BaseSettings):
     MINIO_SCCRET_KEY: str = ""
     MINIO_JM_BOCKET_NAME: str = "jm-repertory"
     MINIO_RANDOM_PIC_BOCKET_NAME: str = "random-pic"
+    MINIO_RANDOM_SETU_BOCKET_NAME: str = "random-st"
 
 
 class LogSetting(BaseSettings):
@@ -74,7 +64,6 @@ class ServiceSetting(BaseSettings):
     # GPT
     GPT_BASE_URL: str = ""
     GPT_API_KEY: str = ""
-    GPT_DEFAULT_MODEL: str = "gpt-3.5-turbo-ca"
     GPT_TEMPERATURE: float = 0.8
     GPT_RESPONSE_FORMAT: dict = {"type": "json_object"}
     
@@ -83,6 +72,25 @@ class ServiceSetting(BaseSettings):
     EMBEDDING_API_KEY: str = ""
     EMBEDDING_MODEL: str = "bge-m3"
     
+    LLM_CAHT_CONFIG_NAME: str = "bot_chatter"
+    
+    
+    BOT_COMMAND_GROUP_CHAT: str = ""
+    BOT_COMMAND_GROUP_QUERY: str = "/询问"
+    BOT_COMMAND_GROUP_RECORD: str = "/悄悄话"
+    BOT_COMMAND_GROUP_JM_CHECK: str = "/jm"
+    BOT_COMMAND_GROUP_RANDOM_PIC: str = "来点二次元"
+    BOT_COMMAND_GROUP_RANDOM_SETU: str = "来点涩图"
+    
+    DB_GROUP_TYPE_MAPPING: dict[str, str] = {
+        BOT_COMMAND_GROUP_CHAT: "group_chat",
+        BOT_COMMAND_GROUP_QUERY: "group_within_query",
+        BOT_COMMAND_GROUP_RECORD: "group_within_record"
+    }
+    
+    BLACK_GROUP_SETU: list[int] = []
+    
+    BASTION_GROUP: int = -1
 
 class Setting(SysSetting, DBSetting, LogSetting, ServiceSetting):
     class Config:

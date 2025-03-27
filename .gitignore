@@ -54,6 +54,7 @@ cache/
 # Django stuff & logger:
 *.log
 log/
+logs/
 
 # Sphinx documentation
 docs/_build/

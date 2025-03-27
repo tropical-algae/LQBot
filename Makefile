@@ -51,8 +51,9 @@ clean:
 update-db:
 	sqlacodegen --generator sqlmodels \
     --tables \
-	group_chat_message,\
-	group_bot_message,\
-	message_type,\
-	group_query_record_relation \
+	official_group_bot_message,\
+	official_group_chat_message,\
+	official_group_query_record_relation,\
+	official_message_type,\
+	unofficial_group_message_v1 \
     --outfile ./src/qq_bot/db/sql/models.py ${SQL_DATABASE_URI}

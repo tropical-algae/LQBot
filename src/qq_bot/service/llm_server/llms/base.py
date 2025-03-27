@@ -8,7 +8,9 @@ from openai.types.chat import (
     ChatCompletionAssistantMessageParam, 
     ChatCompletionSystemMessageParam
 )
-from qq_bot.basekit.util import function_retry, load_yaml
+from qq_bot.basekit.util import load_yaml
+from qq_bot.basekit.decorator import function_retry
+
 
 
 class OpenAIBase:
@@ -55,15 +57,17 @@ class OpenAIBase:
 
     def _load_config(self):
         prompt_version = self.configs.get("version", "v1")
-        prompts: dict = self.configs.get("prompts", {})
 
         self.default_model = self.configs.get("model", "gpt-3.5-turbo-ca")
         self.is_activate: bool = self.configs.get("activate", False)
         self.default_reply: str = self.configs.get("default_reply", "None")
-        self.prompt: str = prompts.get(prompt_version, "")
+        self.prompt: str = self.configs.get("prompts", {}).get(prompt_version, "")
         self.system_prompt = ChatCompletionSystemMessageParam(
-            content=self.configs.get("system_prompt", "You are a helpful assistant."),
-            role="user"
+            content=(
+                self.configs
+                .get("system_prompt", {})
+                .get(prompt_version, "You are a helpful assistant.")),
+            role="system"
         )
         
 

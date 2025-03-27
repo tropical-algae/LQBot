@@ -1,8 +1,9 @@
 import botpy
 from botpy.message import GroupMessage, Message
 from qq_bot.basekit.logging import logger
-from qq_bot.service.qq_bot.bot_server import group_chit_chat
-from qq_bot.service.qq_bot.bot_command import group_insert, group_jm_pic, group_select
+from qq_bot.service.qbot_official.bot_server import group_chit_chat
+from qq_bot.service.qbot_official.bot_command import group_insert, group_jm_pic, group_select
+
 
 class QQBotClient(botpy.Client):
     async def on_ready(self):

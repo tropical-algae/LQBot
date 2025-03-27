@@ -11,7 +11,7 @@ import requests
 from qq_bot.basekit.logging import logger
 from qq_bot.basekit.models import GroupMessageRecord
 from qq_bot.basekit.util import cut_sentences_with_id, encapsulated_bot_group_reply, encapsulated_group_chat_message, groupchat_query_keywords_replace, stitched_images
-from qq_bot.db.sql.crud.group_message_crud import insert_bot_group_message, insert_query_reocrd_relation, insert_user_group_message
+from qq_bot.db.sql.crud.ofcl_group_message_crud import insert_bot_group_message, insert_query_reocrd_relation, insert_user_group_message
 from qq_bot.db.vector.base import build_filter
 from qq_bot.db.vector.crud import insert_text_embedding, select_text_embedding
 from qq_bot.basekit.config import settings
@@ -23,13 +23,12 @@ from qq_bot.db.minio.base import minio
 from qq_bot.db.sql.session import LocalSession
 
 
-@Commands(f"/{settings.BOT_COMMAND_GROUP_QUERY}")
+@Commands(f"{settings.BOT_COMMAND_GROUP_QUERY}")
 async def group_select(api: BotAPI, message: GroupMessage, params=None):
     message.content = params
     user_msg_id = message.id
     group_id = message.group_openid
     user_id = message.author.member_openid
-    message.author
 
     # 语义理解，从历史记录找出相关的信息
     logger.info(f"User[{user_id}] group_query: {params}")
@@ -85,11 +84,11 @@ async def group_select(api: BotAPI, message: GroupMessage, params=None):
     return True
 
 
-@Commands(f"/{settings.BOT_COMMAND_GROUP_RECORD}")
+@Commands(f"{settings.BOT_COMMAND_GROUP_RECORD}")
 async def group_insert(api: BotAPI, message: GroupMessage, params=None):
     logger.info(f"User[{message.author.member_openid}] group_insert: {params}")
     message.content = params
-    group_message = encapsulated_group_chat_message(message=message, need_split=True)
+    group_message = encapsulated_group_chat_message(message=message)
 
     reply = "收到了喵～"
     await api.post_group_message(
@@ -98,7 +97,7 @@ async def group_insert(api: BotAPI, message: GroupMessage, params=None):
         msg_id=message.id,
         content=reply
     )
-    insert_text_embedding(messages=group_message)
+    insert_text_embedding(messages=[group_message])
     with LocalSession() as db:
         msg_type = settings.DB_GROUP_TYPE_MAPPING[settings.BOT_COMMAND_GROUP_RECORD]
         user_msg = encapsulated_group_chat_message(message)
@@ -107,7 +106,7 @@ async def group_insert(api: BotAPI, message: GroupMessage, params=None):
     return True
 
 
-@Commands(f"/{settings.BOT_COMMAND_GROUP_RANDOM_PIC}")
+@Commands(f"{settings.BOT_COMMAND_GROUP_RANDOM_PIC}")
 async def group_jm_pic(api: BotAPI, message: GroupMessage, params=None):
     local_file, url = random_pic.load()
     if local_file:
@@ -135,7 +134,7 @@ async def group_jm_pic(api: BotAPI, message: GroupMessage, params=None):
     return True
 
 
-# @Commands(f"/{settings.BOT_COMMAND_GROUP_JM_CHECK}")
+# @Commands(f"{settings.BOT_COMMAND_GROUP_JM_CHECK}")
 # async def group_jm_pic(api: BotAPI, message: GroupMessage, params=None):
     
 #     # file_url = "http://175.178.43.109:10002/1034997/1/00001.jpg"  # 这里需要填写上传的资源Url

@@ -2,8 +2,8 @@ import uuid
 from sqlmodel import Session, select
 from typing import Literal
 from qq_bot.basekit.models import GroupMessageRecord
-from qq_bot.db.sql.crud.message_type_crud import get_message_type_id_by_name
-from qq_bot.db.sql.models import GroupBotMessage, GroupChatMessage, GroupQueryRecordRelation, MessageType
+from qq_bot.db.sql.crud.ofcl_message_type_crud import get_message_type_id_by_name
+from qq_bot.db.sql.models import OfficialGroupBotMessage, OfficialGroupChatMessage, OfficialGroupQueryRecordRelation, OfficialMessageType
 
 
 # _msg_type_cache: LRUCache[str, str] = LRUCache(maxsize=2048 * 10)
@@ -22,7 +22,7 @@ def insert_user_group_message(
     # 定义映射字典，将 type 映射到对应的模型类
     msg_type_id = get_message_type_id_by_name(db=db, name=type)
     if msg_type_id:
-        new_msg = GroupChatMessage(
+        new_msg = OfficialGroupChatMessage(
             id=message.id,
             type_id=msg_type_id,
             group_id=message.group_id,
@@ -40,7 +40,7 @@ def insert_bot_group_message(
     message: GroupMessageRecord, 
     user_msg_id: str
 ) -> None:
-    new_msg = GroupBotMessage(
+    new_msg = OfficialGroupBotMessage(
         id=message.id,
         reply_msg_id=user_msg_id,
         group_id=message.group_id,
@@ -59,7 +59,7 @@ def insert_query_reocrd_relation(
     scores: list[float]
 ) -> None:
     relations = [
-        GroupQueryRecordRelation(
+        OfficialGroupQueryRecordRelation(
             id=uuid.uuid4().hex,
             query_id=query_id,
             record_id=record_id,

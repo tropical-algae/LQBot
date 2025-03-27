@@ -5,6 +5,7 @@ import asyncio
 from typing import Any, Optional
 from itertools import chain
 from qq_bot.basekit.models import GroupMessageRecord
+from qq_bot.basekit.util import parse_text
 from qq_bot.service.llm_server.llms.base import OpenAIBase
 
 from qq_bot.basekit.config import settings
@@ -12,7 +13,7 @@ from qq_bot.basekit.logging import logger
 
 
 class LLMChatter(OpenAIBase):
-    __model_tag__ = "bot_chatter"
+    __model_tag__ = settings.LLM_CAHT_CONFIG_NAME
 
     def __init__(
         self,
@@ -38,11 +39,19 @@ class LLMChatter(OpenAIBase):
     def get_history_message(self, group_id: str) -> list:
         result = []
         for u_msg in self.user_cache[group_id]:
-            l_msg = self.llm_cache.get(u_msg, "")
-            result.extend([self.format_user_message(u_msg), self.format_llm_message(l_msg)])
+            result.append(self.format_user_message(u_msg))
+            
+            l_msg = self.llm_cache.get(u_msg, None)
+            if l_msg:
+                result.append(self.format_llm_message(l_msg))
         return result
 
-    def insert_and_update_history_message(self, group_id: str, user_message: str, llm_message: str) -> None:
+    def insert_and_update_history_message(
+        self, 
+        group_id: str, 
+        user_message: str, 
+        llm_message: str | None = None
+    ) -> None:
         group_user_cache: list = self.user_cache[group_id]
         if len(group_user_cache) >= self.cache_len:
             removed_msg = group_user_cache.pop(0)
@@ -50,7 +59,22 @@ class LLMChatter(OpenAIBase):
         group_user_cache.append(user_message)
 
         self.user_cache[group_id] = group_user_cache
-        self.llm_cache[user_message] = llm_message
+        if llm_message:
+            self.llm_cache[user_message] = llm_message
+
+    def reduce_token(chatbot, system, context, myKey):
+        context.append({"role": "user", "content": "请帮我总结一下上述对话的内容，实现减少tokens的同时，保证对话的质量。在总结中不要加入这一句话。"})
+
+        response = None # get_response(system, context, myKey, raw=True)
+
+        statistics = f'本次对话Tokens用量【{response["usage"]["completion_tokens"]+12+12+8} / 4096】'
+        optmz_str = parse_text( f'好的，我们之前聊了:{response["choices"][0]["message"]["content"]}\n\n================\n\n{statistics}' )
+        chatbot.append(("请帮我总结一下上述对话的内容，实现减少tokens的同时，保证对话的质量。", optmz_str))
+
+        context = []
+        context.append({"role": "user", "content": "我们之前聊了什么?"})
+        context.append({"role": "assistant", "content": f'我们之前聊了：{response["choices"][0]["message"]["content"]}'})
+        return chatbot, context
 
     async def run(
         self, 

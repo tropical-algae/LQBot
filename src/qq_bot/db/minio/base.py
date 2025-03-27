@@ -71,7 +71,11 @@ minio = MinioServer(
     endpoint=settings.MINIO_ENDPOINT,
     access_key=settings.MINIO_ACCESS_KEY,
     secret_key=settings.MINIO_SCCRET_KEY,
-    buckets=[settings.MINIO_JM_BOCKET_NAME, settings.MINIO_RANDOM_PIC_BOCKET_NAME],
+    buckets=[
+        settings.MINIO_JM_BOCKET_NAME, 
+        settings.MINIO_RANDOM_PIC_BOCKET_NAME, 
+        settings.MINIO_RANDOM_SETU_BOCKET_NAME
+    ],
 )
 
 # def upload_file():

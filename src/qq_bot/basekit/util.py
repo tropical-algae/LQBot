@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import functools
 import inspect
 import json
@@ -7,13 +8,10 @@ import re
 
 import yaml
 from PIL import Image
-from botpy.message import GroupMessage, Message
+from botpy.message import GroupMessage as OfclGroupMessage
+from ncatbot.core import GroupMessage as UnofclGroupMessage
 from qq_bot.basekit.models import GroupMessageRecord
-from qq_bot.db.sql.models import GroupBotMessage
-from qq_bot.basekit.logging import logger
-
-
-
+from qq_bot.db.sql.models import OfficialGroupBotMessage
 
 
 def load_yaml(yaml_path: str) -> dict:
@@ -88,28 +86,30 @@ def groupchat_query_keywords_replace(
 
 
 def encapsulated_group_chat_message(
-    message: GroupMessage, 
-    need_split: bool = False
-) -> GroupMessageRecord | list[GroupMessageRecord]:
-    if need_split:
-        contents = [m for m in str(message.content).split(r'[。？！.?!]') if m]
-        result = [
-            GroupMessageRecord(
-                id=message.id,
-                content=content,
-                group_id=message.group_openid,
-                sender_id=message.author.member_openid,
-                create_time=message.timestamp
-            )
-            for content in contents
-        ]
-    else:
+    message: OfclGroupMessage | UnofclGroupMessage, 
+) -> GroupMessageRecord:
+    assert isinstance(message, OfclGroupMessage) or isinstance(message, UnofclGroupMessage)
+    
+    if isinstance(message, OfclGroupMessage):
         result = GroupMessageRecord(
             id=message.id,
             content=message.content,
             group_id=message.group_openid,
             sender_id=message.author.member_openid,
             create_time=message.timestamp
+        )
+    else:
+        content = get_data_from_message(message.message, "text").get("text", "").strip()
+        reply_message_id = get_data_from_message(message.message, "reply").get("id", None)
+        at_user_id = get_data_from_message(message.message, "at").get("qq", None)
+        result = GroupMessageRecord(
+            id=str(message.message_id),
+            content=content,
+            group_id=str(message.group_id),
+            sender_id=str(message.sender.user_id),
+            reply_message_id=str(reply_message_id) if reply_message_id else None,
+            at_user_id=str(at_user_id) if at_user_id else None,
+            create_time=datetime.fromtimestamp(message.time).isoformat()
         )
     return result
 
@@ -153,48 +153,42 @@ def stitched_images(images: list[Image.Image]) -> Image.Image | None:
         return result
 
 
-def function_retry(times=None):
-    def decorator(func):
-        is_coroutine = asyncio.iscoroutinefunction(func)
+def blue_image(image: Image.Image) -> Image.Image:
+    from PIL import ImageFilter
+    return image.filter(ImageFilter.BLUR)
 
-        @functools.wraps(func)
-        async def async_wrapper(*args, **kwargs):
-            is_method = len(args) > 0 and inspect.isclass(type(args[0]))
-            max_times = getattr(args[0], 'times', 3) if is_method else (times or 3)
-            
-            self = args[0] if is_method else None
-            func_path = f"{type(self).__name__ + '.' if self else ''}{func.__name__}"
-            
 
-            for attempt in range(1, max_times + 1):
-                result = await func(*args, **kwargs)
-                if result is not None:
-                    return result
-                logger.warning(f"RETRY[{attempt}/{max_times}]: function -> {func_path}")
-            logger.warning(f"RETRY CAN NOT FIX ERROR: function -> {func_path}")
-            return None
+def get_data_from_message(message: list[dict], type: str) -> dict:
+    result = next(
+        (
+            item["data"] 
+            for item in message 
+            if item.get("type") == type
+        ),
+        {}
+    )
+    return result
 
-        @functools.wraps(func)
-        def sync_wrapper(*args, **kwargs):
-            is_method = len(args) > 0 and inspect.isclass(type(args[0]))
-            max_times = getattr(args[0], 'times', 3) if is_method else (times or 3)
-            
-            self = args[0] if is_method else None
-            func_path = f"{type(self).__name__ + '.' if self else ''}{func.__name__}"
 
-            for attempt in range(1, max_times + 1):
-                result = func(*args, **kwargs)
-                if result is not None:
-                    return result
-                logger.warning(f"RETRY[{attempt}/{max_times}]: function -> {func_path}")
-            logger.warning(f"RETRY CAN NOT FIX ERROR: function -> {func_path}")
-            return None
-
-        return async_wrapper if is_coroutine else sync_wrapper
-
-    if callable(times):
-        func = times
-        times = None
-        return decorator(func)
-
-    return decorator
+def parse_text(text):
+    lines = text.split("\n")
+    count = 0
+    for i,line in enumerate(lines):
+        if "```" in line:
+            count += 1
+            items = line.split('`')
+            if count % 2 == 1:
+                lines[i] = f'<pre><code class="{items[-1]}">'
+            else:
+                lines[i] = f'</code></pre>'
+        else:
+            if i > 0:
+                if count % 2 == 1:
+                    line = line.replace("&", "&amp;")
+                    line = line.replace("\"", "&quot;")
+                    line = line.replace("\'", "&apos;")
+                    line = line.replace("<", "&lt;")
+                    line = line.replace(">", "&gt;")
+                    line = line.replace(" ", "&nbsp;")
+                lines[i] = '<br/>'+line
+    return "".join(lines)
