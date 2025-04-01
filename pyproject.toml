@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "qq_bot"
 version = "0.1.0"
-description = "XXX"
-authors = ["AAA <AAA@test.com>"]
+description = "qq机器人"
+authors = ["tropical-algae <tropicalalgae@gmail.com>"]
 
 
 [tool.poetry.dependencies]
@@ -32,7 +32,7 @@ cachetools = "^5.5.0"
 jmcomic = "^2.5.32"
 minio = "^7.2.15"
 pillow = "^11.1.0"
-ncatbot = "^3.5.9"
+ncatbot = "^3.5.11"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2"

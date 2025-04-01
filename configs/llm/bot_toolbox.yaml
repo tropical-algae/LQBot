@@ -1,0 +1,10 @@
+activate: true
+default_reply: ''
+model: gpt-4o-mini-ca
+version: prompt_v1
+system_prompt:
+  prompt_v1: |
+    你可以使用工具完成任务。如果用户需要某个工具，请调用它；如果用户输入不需要任何工具，回复'无'
+prompts: 
+  prompt_v1: |
+    ${text}

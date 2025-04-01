@@ -2102,16 +2102,17 @@ files = [
 
 [[package]]
 name = "ncatbot"
-version = "3.5.9"
+version = "3.5.11"
 description = "NapCat Python SDK, 提供一站式开发部署方案"
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "ncatbot-3.5.9-py3-none-any.whl", hash = "sha256:fc3af9c647874512d8b71911b0e50b92e4d50f8c42ef3ec4adaf5e959bddef40"},
-    {file = "ncatbot-3.5.9.tar.gz", hash = "sha256:98c1f438fd2ddc07a8b940184c1a7b78ffffd8fa5e701f7912496e3feb78edbd"},
+    {file = "ncatbot-3.5.11-py3-none-any.whl", hash = "sha256:e9f6d685a63057d9e14261b4ca8058c714819ed88906f6898cc9b0eb131569b8"},
+    {file = "ncatbot-3.5.11.tar.gz", hash = "sha256:daec5851909142466f7a2b01406b6dfbf0faca848b05c1f1760a8972a2f29667"},
 ]
 
 [package.dependencies]
+deprecated = ">=1.2.12,<1.3.0"
 gitpython = ">=3.1.44,<3.2.0"
 httpx = ">=0.28.1,<0.29.0"
 Markdown = ">=3.7,<4.0"
@@ -4385,4 +4386,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "c9b79bd57d52372ccf762c00ecbfea547ed56a39d0f0d042950939bc66f567f8"
+content-hash = "c3cd8beb0af636b9f3a798339dceca1cbeddd6a5b8332764ca4fbb74db45fd8b"

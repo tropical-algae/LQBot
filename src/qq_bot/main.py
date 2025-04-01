@@ -1,28 +1,52 @@
-import botpy
+import ast
+from ncatbot.core import BotAPI, BotClient, GroupMessage, PrivateMessage
+from qq_bot.core.agent.base import AgentBase
+from ncatbot.plugin import BasePlugin
 
-from qq_bot.basekit.config import settings
-from qq_bot.basekit.logging import get_logger_absolute_path, get_system_logger_config, logger
-from qq_bot.service import qbot_official, qbot_unofficial
+from qq_bot.core.tool_manager.tool_registrar import ToolRegistrar
+from qq_bot.utils.logging import logger
+from qq_bot.core.agent.agent_command import group_at_chat, group_random_picture, group_random_setu, group_use_tool
+from qq_bot.core.agent.agent_server import group_random_chat
+from ncatbot.plugin import CompatibleEnrollment
+from ncatbot.utils.time_task_scheduler import TimeTaskScheduler
+from ncatbot.plugin.event import EventBus
 
 
-#*
-# Chat Model 解析时添加is bot
-# 为llm聊天地history添加用户识别
-# #
-
-def run_official() -> None:
-    intents = botpy.Intents(public_messages=True)
-    client = qbot_official.QQBotClient(
-        intents=intents, 
-        # log_config=get_system_logger_config(get_logger_absolute_path("qbot-system")), 
-        timeout=20
-    )
-    client.run(appid=settings.QQBOT_APPID, secret=settings.QQBOT_SECRET)
-
-def run_unofficial() -> None:
-    client = qbot_unofficial.QQBotClient()
-    client.run()
+class QAgent(AgentBase):
+    name = "QAgent" # 插件名称
+    version = "0.1.0" # 插件版本
     
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
-if __name__ == "__main__":
-    run_unofficial()
+        logger.info(f"加载插件")
+        
+        self.tools = ToolRegistrar(agent=self)
+
+        self.bot = CompatibleEnrollment
+        
+        # 命令方法（有序检测）
+        self.group_command = [group_random_picture, group_random_setu, group_use_tool, group_at_chat]
+        
+        self.register_handlers()
+
+    def register_handlers(self):
+        @self.bot.group_event()
+        async def on_group_message(msg: GroupMessage):
+            is_replied: bool = False
+            for handler in self.group_command:
+                if await handler(agent=self, message=msg):
+                    is_replied = True
+                    break
+
+            if not is_replied:
+                await group_random_chat(self.api, msg, 0.15, need_split=True)
+
+        @self.bot.private_event()
+        async def on_private_message(msg: PrivateMessage):
+            if msg.raw_message == "测试":
+                await self.bot.api.post_private_msg(msg.user_id, text="测试成功喵~")
+
+    def run(self):
+        self.bot.run()
+
