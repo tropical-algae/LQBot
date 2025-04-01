@@ -1,15 +1,17 @@
 
 
 import asyncio
+
+from sqlmodel import Session
 from qq_bot.core.agent.agent_server import send_msg_2_group
 from qq_bot.core.agent.base import AgentBase
-from qq_bot.conn.sql.session import LocalSession
 from qq_bot.conn.sql.crud.user_crud import select_user_by_name
+from qq_bot.utils.decorator import sql_session, tools_logger
 from qq_bot.utils.models import GroupMessageRecord
 from qq_bot.utils.util_text import trans_int
 from qq_bot.utils.logging import logger
 
-
+@tools_logger
 class TimedReminderTool:
     tool_name = "time_reminder"
     description = {
@@ -39,12 +41,11 @@ class TimedReminderTool:
         message: str
     ) -> bool:
         def send_message_to_user_wrapper():
-            async def send_message_to_user():
+            @sql_session
+            async def send_message_to_user(db: Session):
                 # 查找用户ID
-                uid: int | None = None
-                with LocalSession() as db:
-                    umodel = select_user_by_name(db=db, name=user)
-                    uid = trans_int(umodel.id) if umodel else None
+                umodel = select_user_by_name(db=db, name=user)
+                uid = trans_int(umodel.id) if umodel else None
                 
                 text = f"{message}\n"
                 if uid is None:

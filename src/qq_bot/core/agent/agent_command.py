@@ -18,11 +18,10 @@ from qq_bot.utils.logging import logger
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_RANDOM_PIC}")
 async def group_random_picture(
     agent: AgentBase, 
-    message: GroupMessage, 
-    content: str | None = None,
-    params: str | None = None
+    message: GroupMessageRecord, 
+    **kwargs
 ) -> bool:
-    logger.info(f"随机图片命令触发")
+    logger.info(f"[{message.id}] 随机图片命令触发")
     
     local_file, url = random_pic.load()
     if local_file:
@@ -35,7 +34,7 @@ async def group_random_picture(
             upload_file={local_file: remote_file}
         )
 
-        await message.api.post_group_msg(message.group_id, image=url)
+        await agent.api.post_group_msg(message.group_id, image=url)
         os.remove(local_file)
     return True
 
@@ -43,11 +42,10 @@ async def group_random_picture(
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_RANDOM_SETU}")
 async def group_random_setu(
     agent: AgentBase, 
-    message: GroupMessage, 
-    content: str | None = None,
-    params: str | None = None
+    message: GroupMessageRecord, 
+    **kwargs
 ) -> bool:
-    logger.info(f"随机setu命令触发")
+    logger.info(f"[{message.id}] 随机setu命令触发")
 
     if message.group_id in settings.BLACK_GROUP_SETU:
         logger.warning(f"[SETU]: 被拉黑的 GROUP{message.group_id}，跳过本次处理")
@@ -69,7 +67,7 @@ async def group_random_setu(
                 bucket=settings.MINIO_RANDOM_PIC_BOCKET_NAME,
                 upload_file={local_file_origin: remote_file_origin}
             )
-            bastion_message = await message.api.post_group_msg(group_id=message.group_id, image=local_file_processed)
+            bastion_message = await agent.api.post_group_msg(group_id=message.group_id, image=local_file_processed)
             
             if bastion_message["status"] == "ok":
                 logger.info(f"[SETU]: GROUP {message.group_id} -> {local_file_origin} 已发送")
@@ -85,25 +83,46 @@ async def group_random_setu(
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_TOOL}", need_at=True)
 async def group_use_tool(
     agent: AgentBase, 
-    message: GroupMessage, 
-    content: str | None = None,
-    params: str | None = None
+    message: GroupMessageRecord, 
+    **kwargs
 ) -> bool:
-    logger.info(f"工具调用触发")
     
-    status = await agent.tools.run(
-        message=await GroupMessageRecord.from_group_message(message, False)
-    )
+    status = await agent.tools.run(message=message)
+    if status:
+        logger.info(f"[{message.id}] 工具调用触发")
+    
     return status
 
 
-@MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_CHAT}", need_at=True)
+@MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_REPLY}", need_at=True)
+async def group_at_reply(
+    agent: AgentBase, 
+    message: GroupMessageRecord, 
+    **kwargs
+) -> bool:
+    status = await group_random_chat(
+        api=agent.api, 
+        message=message, 
+        prob=1.0, 
+        need_split=True
+    )
+    if status:
+        logger.info(f"[{message.id}] AT回复触发")
+    
+
+
+@MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_CHAT}")
 async def group_at_chat(
     agent: AgentBase, 
-    message: GroupMessage, 
-    content: str | None = None,
-    params: str | None = None
+    message: GroupMessageRecord, 
+    **kwargs
 ) -> bool:
-    logger.info(f"强制聊天触发")
 
-    return await group_random_chat(api=agent.api, message=message, prob=1.0, need_split=True)
+    status = await group_random_chat(
+        api=agent.api, 
+        message=message, 
+        prob=settings.CHAT_WILLINGNESS, 
+        need_split=True
+    )
+    if status:
+        logger.info(f"[{message.id}] 随机聊天触发")

@@ -45,14 +45,3 @@ class LLMToolbox(OpenAIBase):
         if response:
             return response.tool_calls
         return None
-                
-        # if response:
-        #     response_parsed: list = extract_json_from_markdown(response)
-        #     if len(response_parsed) > 0:
-        #         triplets: list[dict] = response_parsed[-1]
-        #         logger.info(f"[{self.__model_tag__}]: 抽取实体关系共[{len(triplets)}组 -> {str(triplets)}")
-        #         return triplets
-
-        #     logger.info(f"[{self.__model_tag__}]: 实体解析失败 -> 文本未匹配")
-
-        # logger.info(f"[{self.__model_tag__}]: 模型推理失败")

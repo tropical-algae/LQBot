@@ -80,12 +80,16 @@ class ServiceSetting(BaseSettings):
     TOOLS_LLM_CONFIG_NAME: str = "bot_toolbox"
     RELATION_EXTOR_LLM_CONFIG_NAME: str = "relation_extractor"
     
-    
+    # 指令集（作为前缀时触发）
     BOT_COMMAND_GROUP_CHAT: str = ""
+    BOT_COMMAND_GROUP_REPLY: str = ""
     BOT_COMMAND_GROUP_TOOL: str = ""
     BOT_COMMAND_GROUP_JM_CHECK: str = "jm"
     BOT_COMMAND_GROUP_RANDOM_PIC: str = "来点二次元"
     BOT_COMMAND_GROUP_RANDOM_SETU: str = "来点涩图"
+    
+    # 聊天意愿
+    CHAT_WILLINGNESS: float = 0.12
     
     BLACK_GROUP_SETU: list[int] = []
     

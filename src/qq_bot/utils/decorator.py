@@ -1,7 +1,9 @@
 import asyncio
 import functools
 import inspect
+from typing import Callable
 from ncatbot.core.message import BaseMessage, GroupMessage, PrivateMessage
+from qq_bot.conn.sql.session import LocalSession
 
 from qq_bot.utils.logging import logger
 from qq_bot.utils.util_text import get_data_from_message
@@ -77,15 +79,15 @@ class MessageCommands:
     def __call__(self, func):
         @functools.wraps(func)
         async def decorator(*args, **kwargs):
-            message: BaseMessage = kwargs["message"]
-            if isinstance(message, GroupMessage):
-                content: str = get_data_from_message(message.message, "text").get("text", "").strip()
+            origin_msg: BaseMessage = kwargs["origin_msg"]
+            if isinstance(origin_msg, GroupMessage):
+                content: str = get_data_from_message(origin_msg.message, "text").get("text", "").strip()
                 at: bool = (
                     True if not self.need_at else 
-                    (str(get_data_from_message(message.message, "at").get("qq", "-1")) == str(message.self_id))
+                    (str(get_data_from_message(origin_msg.message, "at").get("qq", "-1")) == str(origin_msg.self_id))
                 )
-            elif isinstance(message, PrivateMessage):
-                content: str = get_data_from_message(message.message, "text").get("text", "").strip()
+            elif isinstance(origin_msg, PrivateMessage):
+                content: str = get_data_from_message(origin_msg.message, "text").get("text", "").strip()
                 at: bool = True
 
             for command in self.commands:
@@ -108,21 +110,37 @@ def tools_logger(cls):
     @functools.wraps(tool_function)
     def wrapped_function(*args, **kwargs):
         param = {k: v for k, v in kwargs.items() if isinstance(v, PRINTABLE_TYPES)}
-        statu = tool_function(*args, **kwargs)
-        if statu:
+        status = tool_function(*args, **kwargs)
+        if status:
             logger.info(f"工具调用成功[{cls.tool_name}]: {str(param)}")
         else:
             logger.error(f"工具调用失败[{cls.tool_name}]: {str(param)}")
-        
-        return statu
+
+        return status
 
     cls.function = staticmethod(wrapped_function)
     return cls
-    
-    
-    @functools.wraps(func)
-    def decorator(*args, **kwargs):
-        statu = func(*args, **kwargs)
-        if statu:
-            param = {k: v for k, v in kwargs.items() if isinstance(v, PRINTABLE_TYPES)}
-        
+
+
+def sql_session(func: Callable):
+    """SQL连接装饰器，兼容同步和异步方法
+
+    Args:
+        func (Callable): 
+
+    Returns:
+        _type_: 
+    """
+    if inspect.iscoroutinefunction(func):
+        @functools.wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            with LocalSession() as db:
+                kwargs["db"] = db
+                return await func(*args, **kwargs)
+        return async_wrapper  # type: ignore
+    else:
+        @functools.wraps(func)
+        def sync_wrapper(*args, **kwargs):
+            with LocalSession() as db:
+                return func(*args, db=db, **kwargs)
+        return sync_wrapper 

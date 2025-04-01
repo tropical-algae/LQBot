@@ -86,10 +86,11 @@ class OpenAIBase:
         prompt = prompt if prompt else self.prompt
         return pattern.sub(partial(replacer, params=params), prompt)
 
-    def format_user_message(self, content: str) -> ChatCompletionUserMessageParam:
+    def format_user_message(self, content: str, **kwargs) -> ChatCompletionUserMessageParam:
         return ChatCompletionUserMessageParam(
             content=content,
-            role="user"
+            role="user",
+            **kwargs
         )
     
     def format_llm_message(self, content: str) -> ChatCompletionAssistantMessageParam:

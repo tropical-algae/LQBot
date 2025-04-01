@@ -59,9 +59,9 @@ def language_classifity(sentence: str) -> Literal["zh", "en"]:
 
 def split_sentence_zh(text: str) -> list[str]:
     text = text.strip()
-    text = re.sub(r'([。！？?.])([^”’])', r'\1\n\2', text)
+    text = re.sub(r'([。！？~?.])([^”’])', r'\1\n\2', text)
     text = re.sub(r'([\.。]{2,}|…{2,})([^”’])', r'\1\n\2', text)
-    text = re.sub(r'([。！？?.][”’])([^，。！？?.])', r'\1\n\2', text)
+    text = re.sub(r'([。！？~?.][”’])([^，。！？?.])', r'\1\n\2', text)
 
     return [line.strip() for line in text.split('\n') if line.strip()]
 

@@ -1,20 +1,24 @@
-import ast
-from ncatbot.core import BotAPI, BotClient, GroupMessage, PrivateMessage
+from ncatbot.core import GroupMessage, PrivateMessage
 from qq_bot.core.agent.base import AgentBase
-from ncatbot.plugin import BasePlugin
-
-from qq_bot.core.tool_manager.tool_registrar import ToolRegistrar
-from qq_bot.utils.logging import logger
-from qq_bot.core.agent.agent_command import group_at_chat, group_random_picture, group_random_setu, group_use_tool
-from qq_bot.core.agent.agent_server import group_random_chat
 from ncatbot.plugin import CompatibleEnrollment
-from ncatbot.utils.time_task_scheduler import TimeTaskScheduler
-from ncatbot.plugin.event import EventBus
+from qq_bot.core.tool_manager.tool_registrar import ToolRegistrar
+from qq_bot.core.agent.agent_command import (
+    group_at_chat, 
+    group_at_reply, 
+    group_random_picture, 
+    group_random_setu, 
+    group_use_tool
+)
+from qq_bot.core.agent.agent_server import save_msg_2_sql
+from qq_bot.core.llm_manager.llm_registrar import llm_registrar
+from qq_bot.utils.models import GroupMessageRecord
+from qq_bot.utils.logging import logger
+from qq_bot.utils.config import settings
 
 
 class QAgent(AgentBase):
     name = "QAgent" # 插件名称
-    version = "0.1.0" # 插件版本
+    version = "0.1.1" # 插件版本
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -22,25 +26,33 @@ class QAgent(AgentBase):
         logger.info(f"加载插件")
         
         self.tools = ToolRegistrar(agent=self)
-
         self.bot = CompatibleEnrollment
         
-        # 命令方法（有序检测）
-        self.group_command = [group_random_picture, group_random_setu, group_use_tool, group_at_chat]
+        # 命令方法（**检测有顺序区分**）
+        self.group_command = [group_random_picture, group_random_setu, group_use_tool, group_at_reply, group_at_chat]
         
         self.register_handlers()
 
     def register_handlers(self):
         @self.bot.group_event()
         async def on_group_message(msg: GroupMessage):
-            is_replied: bool = False
+            if msg.post_type != "message":
+                logger.warning(f"非文本消息，跳过")
+                return
+            
+            user_msg = await GroupMessageRecord.from_group_message(msg, False)
             for handler in self.group_command:
-                if await handler(agent=self, message=msg):
-                    is_replied = True
+                if await handler(agent=self, message=user_msg, origin_msg=msg):
                     break
 
-            if not is_replied:
-                await group_random_chat(self.api, msg, 0.15, need_split=True)
+            # 聊天信息存储mysql
+            # 更新chat llm记忆
+            save_msg_2_sql(messages=user_msg)
+            (
+                llm_registrar
+                .get(settings.CHATTER_LLM_CONFIG_NAME)
+                .insert_and_update_history_message(user_message=user_msg)
+            )
 
         @self.bot.private_event()
         async def on_private_message(msg: PrivateMessage):

@@ -1,10 +1,10 @@
 from qq_bot.core.agent.agent_server import send_msg_2_group
 from qq_bot.core.agent.base import AgentBase
-from qq_bot.conn.sql.session import LocalSession
+from qq_bot.utils.decorator import tools_logger
 from qq_bot.utils.models import GroupMessageRecord
 from qq_bot.utils.logging import logger
 
-
+@tools_logger
 class DataUpdateTool:
     tool_name = "data_update"
     description = {
