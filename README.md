@@ -1,4 +1,4 @@
-# qq_bot
+# LQBot
 
 None
 

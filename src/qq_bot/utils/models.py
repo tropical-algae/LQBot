@@ -45,6 +45,28 @@ class QUser(BaseModel):
             age=data.age,
             long_nick=data.long_nick
         ) if data else None
+    
+    @classmethod
+    def from_dict(
+        cls,
+        data: dict
+    ) -> type["QUser"]:
+        return cls(
+            id=trans_int(data.get("user_id", None) or data.get("id", None)),
+            nikename=data.get("nickname", "QQ用户"),
+            sex=data.get("sex", "unknown"),
+            age=data.get("age", 0),
+            long_nick=data.get("long_nick", None)
+        )
+    
+    def to_dict(self, to_str: bool = True) -> dict:
+        return {
+            "id": trans_str(self.id) if to_str else self.id,
+            "nikename": self.nikename,
+            "sex": self.sex,
+            "age": self.age,
+            "long_nick": self.long_nick
+        }
 
 
 class GroupMessageRecord(BaseModel):

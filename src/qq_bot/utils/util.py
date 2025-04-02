@@ -1,9 +1,11 @@
 import asyncio
 from datetime import datetime
 import functools
+import importlib
 import inspect
 import json
 import os
+import pkgutil
 import re
 from typing import Literal
 
@@ -20,6 +22,16 @@ def load_yaml(yaml_path: str) -> dict:
     except Exception as err:
         logger.error(f"[YAML Reader] Error occured when read YAML from path '{yaml_path}'. Error: {err}")
         return {}
+
+
+def import_all_modules_from_package(package):
+    """自动导入指定包中的所有模块
+
+    Args:
+        package (_type_): 包名
+    """
+    for importer, modname, ispkg in pkgutil.walk_packages(package.__path__, package.__name__ + "."):
+        importlib.import_module(modname)
 
 
 def stitched_images(images: list[Image.Image]) -> Image.Image | None: 

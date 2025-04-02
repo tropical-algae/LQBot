@@ -47,12 +47,13 @@ class LQBot(AgentBase):
 
             # 聊天信息存储mysql
             # 更新chatter记忆
-            save_msg_2_sql(messages=user_msg)
-            (
-                llm_registrar
-                .get(settings.CHATTER_LLM_CONFIG_NAME)
-                .insert_and_update_history_message(user_message=user_msg)
-            )
+            if user_msg.content != "":
+                save_msg_2_sql(messages=user_msg)
+                (
+                    llm_registrar
+                    .get(settings.CHATTER_LLM_CONFIG_NAME)
+                    .insert_and_update_history_message(user_message=user_msg)
+                )
 
         @self.bot.private_event()
         async def on_private_message(msg: PrivateMessage):

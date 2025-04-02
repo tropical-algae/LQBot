@@ -6,13 +6,14 @@ from sqlmodel import Session
 from qq_bot.core.agent.agent_server import send_msg_2_group
 from qq_bot.core.agent.base import AgentBase
 from qq_bot.conn.sql.crud.user_crud import select_user_by_name
+from qq_bot.core.tool_manager.tools.base import ToolBase
 from qq_bot.utils.decorator import sql_session, tools_logger
 from qq_bot.utils.models import GroupMessageRecord
 from qq_bot.utils.util_text import trans_int
 from qq_bot.utils.logging import logger
 
 @tools_logger
-class TimedReminderTool:
+class TimedReminderTool(ToolBase):
     tool_name = "time_reminder"
     description = {
         "type": "function",
@@ -44,9 +45,14 @@ class TimedReminderTool:
             @sql_session
             async def send_message_to_user(db: Session):
                 # 查找用户ID
-                umodel = select_user_by_name(db=db, name=user)
-                uid = trans_int(umodel.id) if umodel else None
-                
+                # umodel = select_user_by_name(db=db, name=user)
+                # uid = trans_int(umodel.id) if umodel else None
+
+                uid: int | None = None
+                response = await agent.api.get_group_member_list(user_msg.group_id)
+                if response["status"] == "ok":
+                    uid = next((umodel["user_id"] for umodel in response["data"] if umodel["nickname"] == user), None)
+
                 text = f"{message}\n"
                 if uid is None:
                     text = f"TO: {user}\n{message}"
@@ -74,12 +80,14 @@ class TimedReminderTool:
             )
             
             # 发送提示信息
-            send_msg_2_group(
-                api=agent.api,
-                group_id=user_msg.group_id, 
-                text=f"已建立日程提醒任务\n主体人: {user}\nTime: {time}\nTheme: {user_msg.content}\n",
-                at=user_msg.sender.id
+            asyncio.get_event_loop().create_task(
+                agent.api.post_group_msg(
+                    group_id=user_msg.group_id, 
+                    text=f"已建立日程提醒任务\n主体人: {user}\nTime: {time}\nTheme: {user_msg.content}\n",
+                    at=user_msg.sender.id
+                )
             )
+            
             return True
         except Exception as err:
             logger.error(err)

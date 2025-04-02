@@ -1,17 +1,10 @@
-import asyncio
-import importlib
 import os
-import pkgutil
 from qq_bot.utils.config import settings
 from qq_bot.utils.logging import logger
 from qq_bot.core.llm_manager.llms.base import OpenAIBase
 import qq_bot.core.llm_manager.llms as bot_llms
+from qq_bot.utils.util import import_all_modules_from_package
 
-
-def import_all_modules_from_package(package):
-    """自动导入指定包中的所有模块"""
-    for importer, modname, ispkg in pkgutil.walk_packages(package.__path__, package.__name__ + "."):
-        importlib.import_module(modname)
 
 class LLMRegistrar:
     def __init__(self, prompt_root: str):
@@ -20,6 +13,8 @@ class LLMRegistrar:
         self._load_model_services()
 
     def _load_model_services(self) -> None:
+        import_all_modules_from_package(bot_llms)
+        
         model_services = OpenAIBase.__subclasses__()
         logger.info("正在注册模型服务")
         for model_service in model_services:
@@ -39,7 +34,6 @@ class LLMRegistrar:
         return self.model_services.get(model_tag, None)
 
 
-import_all_modules_from_package(bot_llms)
 llm_registrar = LLMRegistrar(prompt_root=settings.LOCAL_PROMPT_ROOT)
 
 

@@ -1,17 +1,19 @@
-from qq_bot.core.agent.agent_server import send_msg_2_group
+import asyncio
+from qq_bot.core.agent.agent_server import send_msg_2_group, update_group_user_info
 from qq_bot.core.agent.base import AgentBase
+from qq_bot.core.tool_manager.tools.base import ToolBase
 from qq_bot.utils.decorator import tools_logger
-from qq_bot.utils.models import GroupMessageRecord
+from qq_bot.utils.models import GroupMessageRecord, QUser
 from qq_bot.utils.logging import logger
 
 @tools_logger
-class DataUpdateTool:
+class DataUpdateTool(ToolBase):
     tool_name = "data_update"
     description = {
         "type": "function",
         "function": {
             "name": tool_name,
-            "description": "更新用户数据（当用户明确要求更新用户信息时触发）",
+            "description": "更新群组内的群员数据（当用户明确要求更新用户信息时触发）",
             "parameters": {
                 "type": "object",
                 "required": ["user"],
@@ -20,9 +22,9 @@ class DataUpdateTool:
                         "type": "array",
                         "items": {
                             "type": "string",
-                            "description": "单个用户名。如果为 'ALL'，表示更新所有用户信息。"
+                            "description": "单个用户名。如果为 'ALL'，表示更新所有用户信息"
                         },
-                        "description": "要被更新的用户名列表，或仅包含一个 'ALL' 表示更新全员。"
+                        "description": "要被更新的用户名列表，或仅包含一个 'ALL' 表示更新全员"
                     },
                 },
             },
@@ -36,14 +38,46 @@ class DataUpdateTool:
         user_msg: GroupMessageRecord,
         user: list[str]
     ) -> bool:
-        try:
+        async def collect_and_update_gruop_user_info():
+            target_users: list[QUser] = []
+            
+            # 收集目标用户数据
+            response = await agent.api.get_group_member_list(user_msg.group_id, False)
+            if response["status"] == "ok":
+                if "ALL" not in user:
+                    target_users = [QUser.from_dict(u) for u in response["data"] if u["nickname"] in user]
+                else:
+                    target_users = [QUser.from_dict(u) for u in response["data"]]
+            
+            updated_users, inserted_users = update_group_user_info(users=target_users)
+            
             # 发送提示信息
-            send_msg_2_group(
-                api=agent.api,
-                group_id=user_msg.group_id, 
-                text="",
-                at=user_msg.sender.id
+            text = (
+                f"已更新成员信息\n"
+                f"更新主体: {(', '.join(updated_users[:4]) + ('' if len(updated_users) < 4 else '等')) if updated_users else 'None'}\n"
+                f"新增主体: {(', '.join(inserted_users[:4]) + ('' if len(inserted_users) < 4 else '等')) if inserted_users else 'None'}\n"
             )
+            await agent.api.post_group_msg(
+                group_id=user_msg.group_id,
+                at=user_msg.sender.id,
+                text=text
+            )
+            # if result["status"] == "ok":
+            #     logger.info(f"定时提醒已触发: [主体 - {user}]{time} -> {message}")
+            # else:
+            #     logger.error(f"定时提醒发送失败: [主体 - {user}]{time} -> {message}")
+            
+            # send_msg_2_group(
+            #     api=agent.api,
+            #     group_id=user_msg.group_id, 
+            #     text="",
+            #     at=user_msg.sender.id
+            # )
+
+        try:
+            loop = asyncio.get_event_loop()
+            loop.create_task(collect_and_update_gruop_user_info())
+            
             return True
         except Exception as err:
             logger.error(err)

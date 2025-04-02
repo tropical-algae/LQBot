@@ -2,11 +2,13 @@ import asyncio
 import random
 from ncatbot.core import GroupMessage, BotAPI
 from sqlmodel import Session
+from qq_bot.conn.sql.crud.user_crud import insert_users, select_user_by_ids, update_users
 from qq_bot.core.agent.base import AgentBase
 from qq_bot.utils.decorator import sql_session
-from qq_bot.utils.models import GroupMessageRecord
-from qq_bot.utils.util_text import auto_split_sentence, get_data_from_message, language_classifity, typing_time_calculate
+from qq_bot.utils.models import GroupMessageRecord, QUser
+from qq_bot.utils.util_text import auto_split_sentence, language_classifity, typing_time_calculate
 from qq_bot.conn.sql.crud.group_message_crud import insert_group_message, insert_group_messages
+
 from qq_bot.core.llm_manager.llm_registrar import llm_registrar
 from qq_bot.utils.config import settings
 from qq_bot.utils.logging import logger
@@ -32,6 +34,36 @@ def save_msg_2_sql(
         logger.info(f"聊天记录已存储: {abs}")
     except Exception as err:
         logger.error(f"{err}. 聊天记录存储失败: {abs}")
+
+
+@sql_session
+def update_group_user_info(
+    users: list[QUser],
+    db: Session | None = None
+) -> tuple[list, list]:
+    updated_users: list[str] = []
+    inserted_users: list[str] = []
+    
+    try:
+        # 更新已有数据
+        existed_users = select_user_by_ids(db=db, ids=[u.id for u in users])
+        update_users(db=db, users=existed_users, updated_users=users)
+        updated_users = [u.nikename for u in existed_users]
+        logger.info(f"更新群组用户[{len(existed_users)}]条: {updated_users}")
+    except Exception as err:
+        logger.error(f"更新群组用户时发生错误: {err}")
+        
+    try:
+        # 插入新数据
+        existed_users_id = {int(u.id) for u in existed_users}  # 使用 set 来加速查找
+        new_users: list[QUser] = [u for u in users if int(u.id) not in existed_users_id]
+        insert_users(db=db, users=new_users)
+        inserted_users = [u.nikename for u in new_users]
+        logger.info(f"新增群组用户[{len(new_users)}条]: {inserted_users}")
+    except Exception as err:
+        logger.error(f"新增群组用户时发生错误: {err}")
+    
+    return updated_users, inserted_users
 
 
 async def send_msg_2_group(
