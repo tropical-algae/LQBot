@@ -8,7 +8,7 @@ from qq_bot.utils.decorator import MessageCommands
 from qq_bot.utils.models import GroupMessageRecord
 from qq_bot.utils.util import blue_image
 from qq_bot.core.agent.agent_server import group_random_chat
-from qq_bot.core import random_pic_loader
+from qq_bot.core import random_pic_provider
 from qq_bot.conn.minio.base import minio
 from qq_bot.utils.config import settings
 from qq_bot.utils.logging import logger
@@ -20,7 +20,7 @@ async def group_random_picture(
 ) -> bool:
     logger.info(f"[{message.id}] 随机图片命令触发")
 
-    local_file, url = random_pic_loader.load()
+    local_file, url = random_pic_provider.load()
     if local_file:
         remote_file = os.path.join(
             datetime.now().strftime("%Y-%m"), os.path.basename(local_file)
@@ -44,7 +44,7 @@ async def group_random_setu(
     num = 1
 
     logger.info(f"[SETU]: GROUP {message.group_id} -> 准备发送{num}张")
-    for local_file_origin, url in random_pic_loader.load_r18(num=num):
+    for local_file_origin, url in random_pic_provider.load_r18(num=num):
         if local_file_origin and url:
             local_time = datetime.now().strftime("%Y-%m")
             remote_file_origin = os.path.join(

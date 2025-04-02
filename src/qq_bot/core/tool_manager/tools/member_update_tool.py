@@ -1,8 +1,5 @@
 import asyncio
-from qq_bot.core.agent.agent_server import (
-    send_msg_2_group,
-    update_group_user_info,
-)
+from qq_bot.core.agent.agent_server import update_group_user_info
 from qq_bot.core.agent.base import AgentBase
 from qq_bot.core.tool_manager.tools.base import ToolBase
 from qq_bot.utils.decorator import tools_logger
@@ -11,13 +8,13 @@ from qq_bot.utils.logging import logger
 
 
 @tools_logger
-class DataUpdateTool(ToolBase):
-    tool_name = "data_update"
+class MemberUpdateTool(ToolBase):
+    tool_name = "member_update"
     description = {
         "type": "function",
         "function": {
             "name": tool_name,
-            "description": "更新群组内的群员数据（当用户明确要求更新用户信息时触发）",
+            "description": "更新群组内某个群员（或全员）的数据",
             "parameters": {
                 "type": "object",
                 "required": ["user"],
@@ -64,17 +61,6 @@ class DataUpdateTool(ToolBase):
             await agent.api.post_group_msg(
                 group_id=user_msg.group_id, at=user_msg.sender.id, text=text
             )
-            # if result["status"] == "ok":
-            #     logger.info(f"定时提醒已触发: [主体 - {user}]{time} -> {message}")
-            # else:
-            #     logger.error(f"定时提醒发送失败: [主体 - {user}]{time} -> {message}")
-
-            # send_msg_2_group(
-            #     api=agent.api,
-            #     group_id=user_msg.group_id,
-            #     text="",
-            #     at=user_msg.sender.id
-            # )
 
         try:
             loop = asyncio.get_event_loop()

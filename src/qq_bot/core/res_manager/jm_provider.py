@@ -4,7 +4,7 @@ from qq_bot.utils.config import settings
 from qq_bot.utils.logging import logger
 
 
-class JMDownloader:
+class JMProvider:
     def __init__(self, cache_root: str, option_path: str) -> list:
         self.cache_root = cache_root
         self.option = jmcomic.create_option_by_file(option_path)
@@ -31,6 +31,6 @@ class JMDownloader:
         return []
 
 
-jm_loader = JMDownloader(
+jm_provider = JMProvider(
     cache_root=settings.JM_CACHE_ROOT, option_path=settings.JM_OPTION
 )

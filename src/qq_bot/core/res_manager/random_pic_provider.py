@@ -7,7 +7,7 @@ import requests
 from qq_bot.utils.config import settings
 
 
-class RandomPicLoader:
+class RandomPicProvider:
     def __init__(self, cache_root: str, api_v1: str, api_v2: str):
         self.cache_root = cache_root
         self.api_v1 = api_v1
@@ -47,7 +47,7 @@ class RandomPicLoader:
                     yield file_path, url
 
 
-random_pic_loader = RandomPicLoader(
+random_pic_provider = RandomPicProvider(
     cache_root=settings.RANDOM_PIC_CACHE_ROOT,
     api_v1=settings.RANDOM_PIC_API_v1,
     api_v2=settings.RANDOM_PIC_API_v2,

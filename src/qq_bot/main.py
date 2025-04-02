@@ -1,7 +1,6 @@
 from ncatbot.core import GroupMessage, PrivateMessage
 from qq_bot.core.agent.base import AgentBase
 from ncatbot.plugin import CompatibleEnrollment
-from qq_bot.core.res_manager.news_capturer import NewsLoader
 from qq_bot.core.tool_manager.tool_registrar import ToolRegistrar
 from qq_bot.core.agent.agent_command import (
     group_at_chat,

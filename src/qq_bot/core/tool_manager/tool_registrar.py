@@ -25,6 +25,8 @@ class ToolRegistrar(ToolRegistrarBase):
         self.tools: dict[str, ToolBase] = {tool.tool_name: tool for tool in tools}
         self.tool_dec: list[dict] = [tool.description for tool in tools]
 
+        logger.info(f"已注册Agent工具: {', '.join(self.tools.keys())}")
+
     async def run(self, message: GroupMessageRecord) -> bool:
         results: list[ChatCompletionMessageToolCall] | None = await llm_registrar.get(
             "bot_toolbox"

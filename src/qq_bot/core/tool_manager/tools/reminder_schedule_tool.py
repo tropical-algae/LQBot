@@ -12,8 +12,8 @@ from qq_bot.utils.logging import logger
 
 
 @tools_logger
-class TimedReminderTool(ToolBase):
-    tool_name = "time_reminder"
+class ReminderScheduleTool(ToolBase):
+    tool_name = "reminder_schedule"
     description = {
         "type": "function",
         "function": {
@@ -33,7 +33,7 @@ class TimedReminderTool(ToolBase):
                     },
                     "message": {
                         "type": "string",
-                        "description": "（以第一人称角度）你提醒用户时所说的话",
+                        "description": "（以第一人称角度）完整的事项描述",
                     },
                 },
             },
@@ -81,7 +81,8 @@ class TimedReminderTool(ToolBase):
                 else:
                     logger.error(f"定时提醒发送失败: [主体 - {user}]{time} -> {message}")
 
-            asyncio.create_task(send_message_to_user())
+            asyncio.get_event_loop().create_task(send_message_to_user())
+            # asyncio.create_task(send_message_to_user())
 
         try:
             # 添加定时任务

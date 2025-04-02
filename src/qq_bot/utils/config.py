@@ -77,7 +77,7 @@ class ServiceSetting(BaseSettings):
     RANDOM_PIC_API_v1: str = "https://api.anosu.top/img"
     RANDOM_PIC_API_v2: str = "https://image.anosu.top/pixiv/json"
     NEWS_API: str = ""
-    NEWS_SOURCES: list[str] = []
+    NEWS_SOURCES: dict[str, str] = []  # 信源中文名与路由名的映射
 
     # 黑白名单（白名单非空时视为开启）
     GROUP_INSTRUCT_BLACK: dict[str, list[int]] = {

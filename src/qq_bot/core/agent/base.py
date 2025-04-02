@@ -1,7 +1,5 @@
 from ncatbot.plugin import BasePlugin
-from ncatbot.core import BotClient, BotAPI
-from qq_bot.core.res_manager.news_capturer import NewsLoader
-from qq_bot.core.llm_manager.llm_registrar import LLMRegistrar
+from ncatbot.core import BotClient
 from qq_bot.core.tool_manager.base import ToolRegistrarBase
 
 
