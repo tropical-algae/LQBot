@@ -47,10 +47,6 @@ async def group_random_setu(
 ) -> bool:
     logger.info(f"[{message.id}] 随机setu命令触发")
 
-    if message.group_id in settings.BLACK_GROUP_SETU:
-        logger.warning(f"[SETU]: 被拉黑的 GROUP{message.group_id}，跳过本次处理")
-        return False
-
     num = 1
 
     logger.info(f"[SETU]: GROUP {message.group_id} -> 准备发送{num}张")

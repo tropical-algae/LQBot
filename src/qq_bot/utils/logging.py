@@ -106,14 +106,16 @@ def get_logger_absolute_path(filename: str):
     )
 
 
-def get_logger() -> logging.Logger:
-    filename = get_logger_absolute_path(
-        filename=settings.PROJECT_NAME.replace(" ", "")
-    )
-    logging_config = get_system_logger_config(filename=filename)
-    logging.config.dictConfig(logging_config)
-    logger = logging.getLogger(settings.LOG_NAME)
-    return logger
+def get_logger(use_default: bool = False) -> logging.Logger:
+    if use_default:
+        return logging.getLogger(settings.LOG_NAME)
+    else:
+        filename = get_logger_absolute_path(
+            filename=settings.PROJECT_NAME.replace(" ", "")
+        )
+        logging_config = get_system_logger_config(filename=filename)
+        logging.config.dictConfig(logging_config)
+        return logging.getLogger(settings.LOG_NAME)
 
 
-logger = get_logger()
+logger = get_logger(use_default=True)

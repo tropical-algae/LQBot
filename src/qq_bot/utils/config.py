@@ -41,7 +41,6 @@ class DBSetting(BaseSettings):
     ENTITY_VECTOR_STORE_NAME: str = ""
     RELATION_VECTOR_STORE_NAME: str = ""
     
-    
     VECTOR_SELECT_TOP_K: int = 4
     VECTOR_SELECT_THRESHOLD: float = 0.5
     
@@ -65,10 +64,13 @@ class LogSetting(BaseSettings):
 
 
 class ServiceSetting(BaseSettings):
+    # Bot基本设置
+    BOT_UID: str = ""
+    BOT_WS_URL: str = ""
+    
     # GPT
     GPT_BASE_URL: str = ""
     GPT_API_KEY: str = ""
-    GPT_TEMPERATURE: float = 0.8
     GPT_RESPONSE_FORMAT: dict = {"type": "json_object"}
     
     # BGE_M3
@@ -91,9 +93,22 @@ class ServiceSetting(BaseSettings):
     # 聊天意愿
     CHAT_WILLINGNESS: float = 0.12
     
-    BLACK_GROUP_SETU: list[int] = []
-    
-    BASTION_GROUP: int = -1
+    # 黑白名单（白名单非空时视为开启）
+    GROUP_INSTRUCT_BLACK: dict[str, list[int]] = {
+        "group_random_picture": [],
+        "group_random_setu": [],
+        "group_use_tool": [],
+        "group_at_reply": [],
+        "group_at_chat": []
+    }
+    GROUP_INSTRUCT_WHITE: dict[str, list[int]] = {
+        "group_random_picture": [],
+        "group_random_setu": [],
+        "group_use_tool": [],
+        "group_at_reply": [],
+        "group_at_chat": []
+    }
+
 
 class Setting(SysSetting, DBSetting, LogSetting, ServiceSetting):
     class Config:

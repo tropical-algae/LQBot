@@ -1,4 +1,4 @@
-activate: true
+activate: false
 default_reply: "[]"
 model: deepseek-v3 # gpt-4o-mini-ca
 version: prompt_v1

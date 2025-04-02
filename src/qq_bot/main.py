@@ -16,8 +16,8 @@ from qq_bot.utils.logging import logger
 from qq_bot.utils.config import settings
 
 
-class QAgent(AgentBase):
-    name = "QAgent" # 插件名称
+class LQBot(AgentBase):
+    name = "LQBot" # 插件名称
     version = "0.1.1" # 插件版本
     
     def __init__(self, **kwargs):
@@ -46,7 +46,7 @@ class QAgent(AgentBase):
                     break
 
             # 聊天信息存储mysql
-            # 更新chat llm记忆
+            # 更新chatter记忆
             save_msg_2_sql(messages=user_msg)
             (
                 llm_registrar

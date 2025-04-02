@@ -6,6 +6,7 @@ from ncatbot.core.message import BaseMessage, GroupMessage, PrivateMessage
 from qq_bot.conn.sql.session import LocalSession
 
 from qq_bot.utils.logging import logger
+from qq_bot.utils.config import settings
 from qq_bot.utils.util_text import get_data_from_message
 
 
@@ -80,16 +81,34 @@ class MessageCommands:
         @functools.wraps(func)
         async def decorator(*args, **kwargs):
             origin_msg: BaseMessage = kwargs["origin_msg"]
+            
+            # 处理群聊指令
             if isinstance(origin_msg, GroupMessage):
+                func_name = func.__name__
+                white_list = settings.GROUP_INSTRUCT_WHITE.get(func_name, [])
+                black_list = settings.GROUP_INSTRUCT_BLACK.get(func_name, [])
+
+                # 检测黑白名单
+                if white_list:
+                    if origin_msg.group_id not in white_list:
+                        logger.warning(f"GROUP [{origin_msg.group_id}] 未添加功能白名单：{func_name}")
+                        return False
+                elif origin_msg.group_id in black_list:
+                    logger.warning(f"GROUP [{origin_msg.group_id}] 功能被拉黑：{func_name}")
+                    return False
+
                 content: str = get_data_from_message(origin_msg.message, "text").get("text", "").strip()
                 at: bool = (
                     True if not self.need_at else 
                     (str(get_data_from_message(origin_msg.message, "at").get("qq", "-1")) == str(origin_msg.self_id))
                 )
+            
+            # 处理私聊指令
             elif isinstance(origin_msg, PrivateMessage):
                 content: str = get_data_from_message(origin_msg.message, "text").get("text", "").strip()
                 at: bool = True
 
+            # 判断🐟执行
             for command in self.commands:
                 is_matched: bool = True if command == "" else content.startswith(command)
                 if is_matched and at:

@@ -74,7 +74,7 @@ async def group_random_chat(
             replies: list[str] = auto_split_sentence(reply, language)
 
             for text in replies:
-                text = text.strip("。.~")
+                text = text.strip("。.~～")
                 await asyncio.sleep(typing_time_calculate(text, language))
                 bot_reply = await send_msg_2_group(api, message.group_id, text)
                 if bot_reply:

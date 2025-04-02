@@ -39,6 +39,7 @@ class LLMRelationExtractor(OpenAIBase):
         **kwargs
     ) -> list[dict]:
         
+        # TODO 完善实体关系抽取
         # messages = [f"[{m.sender.nikename or 'QQ用户'}][{m.send_time}]: '{m.content}'" for m in message]
         messages = message
         content = [self.format_user_message(self._set_prompt(input={"text": "\n".join(messages)}))]

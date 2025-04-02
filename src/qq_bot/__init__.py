@@ -1,3 +1,3 @@
-from .main import QAgent
+from .main import LQBot
 
-__all__ = ["QAgent"]
+__all__ = ["LQBot"]
