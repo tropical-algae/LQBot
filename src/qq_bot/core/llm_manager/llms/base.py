@@ -4,14 +4,13 @@ from functools import partial
 from typing import Any, Optional, Union
 from openai import AsyncOpenAI, OpenAI
 from openai.types.chat import (
-    ChatCompletionUserMessageParam, 
-    ChatCompletionAssistantMessageParam, 
+    ChatCompletionUserMessageParam,
+    ChatCompletionAssistantMessageParam,
     ChatCompletionSystemMessageParam,
-    ChatCompletionMessage
+    ChatCompletionMessage,
 )
 from qq_bot.utils.util import load_yaml
 from qq_bot.utils.decorator import function_retry
-
 
 
 class OpenAIBase:
@@ -28,7 +27,7 @@ class OpenAIBase:
         **kwargs,
     ) -> None:
         # assert os.path.isfile(prompt_path)
-        
+
         self.retry = retry
         self.configs: dict = load_yaml(prompt_path)
         self._load_config()
@@ -65,12 +64,12 @@ class OpenAIBase:
         self.prompt: str = self.configs.get("prompts", {}).get(prompt_version, "")
         self.system_prompt = ChatCompletionSystemMessageParam(
             content=(
-                self.configs
-                .get("system_prompt", {})
-                .get(prompt_version, "You are a helpful assistant.")),
-            role="system"
+                self.configs.get("system_prompt", {}).get(
+                    prompt_version, "You are a helpful assistant."
+                )
+            ),
+            role="system",
         )
-        
 
     def _set_prompt(self, input: dict, prompt: str | None = None) -> str:
         def replacer(match, params: dict):
@@ -86,30 +85,30 @@ class OpenAIBase:
         prompt = prompt if prompt else self.prompt
         return pattern.sub(partial(replacer, params=params), prompt)
 
-    def format_user_message(self, content: str, **kwargs) -> ChatCompletionUserMessageParam:
-        return ChatCompletionUserMessageParam(
-            content=content,
-            role="user",
-            **kwargs
-        )
-    
+    def format_user_message(
+        self, content: str, **kwargs
+    ) -> ChatCompletionUserMessageParam:
+        return ChatCompletionUserMessageParam(content=content, role="user", **kwargs)
+
     def format_llm_message(self, content: str) -> ChatCompletionAssistantMessageParam:
-        return ChatCompletionAssistantMessageParam(
-            content=content, 
-            role="assistant"
-        )
+        return ChatCompletionAssistantMessageParam(content=content, role="assistant")
 
     def _inference(self, content: str, model: Optional[str] = None, **kwargs) -> str:
         if self.is_activate:
             model = model or self.default_model
 
             if isinstance(content, str):
-                messages = [self.system_prompt, self.format_user_message(content=content)]
+                messages = [
+                    self.system_prompt,
+                    self.format_user_message(content=content),
+                ]
             if isinstance(content, list):
                 content.insert(0, self.system_prompt)
-                messages=content
+                messages = content
             completion = self.client.chat.completions.create(
-                messages=messages, model=model, **kwargs  # type: ignore
+                messages=messages,
+                model=model,
+                **kwargs,  # type: ignore
             )
             if completion.choices and completion.choices[-1].message:
                 response = completion.choices[-1].message.content
@@ -122,22 +121,26 @@ class OpenAIBase:
 
     @function_retry
     async def _async_inference(
-        self, 
-        content: Any, 
-        model: Optional[str] = None, 
-        **kwargs
+        self, content: Any, model: Optional[str] = None, **kwargs
     ) -> ChatCompletionMessage | None:
         if self.is_activate:
-            assert isinstance(content, str) or isinstance(content, list), f"Illegal LLM input type: {type(content)}"
+            assert isinstance(content, str) or isinstance(
+                content, list
+            ), f"Illegal LLM input type: {type(content)}"
 
             model = model or self.default_model
             if isinstance(content, str):
-                messages = [self.system_prompt, self.format_user_message(content=content)]
+                messages = [
+                    self.system_prompt,
+                    self.format_user_message(content=content),
+                ]
             if isinstance(content, list):
                 content.insert(0, self.system_prompt)
-                messages=content
+                messages = content
 
-            completion = await self.async_client.chat.completions.create(messages=messages, model=model, **kwargs)
+            completion = await self.async_client.chat.completions.create(
+                messages=messages, model=model, **kwargs
+            )
             if completion.choices and completion.choices[-1].message:
                 return completion.choices[-1].message
                 # response = completion.choices[-1].message.content
@@ -148,9 +151,5 @@ class OpenAIBase:
         else:
             return self.default_reply
 
-    async def run(
-        self, 
-        message: Any,
-        **kwargs
-    ) -> Any:
+    async def run(self, message: Any, **kwargs) -> Any:
         pass

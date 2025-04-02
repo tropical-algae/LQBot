@@ -26,30 +26,30 @@ def extract_json_from_markdown(text: str) -> list[dict | list]:
 def parse_text(text):
     lines = text.split("\n")
     count = 0
-    for i,line in enumerate(lines):
+    for i, line in enumerate(lines):
         if "```" in line:
             count += 1
-            items = line.split('`')
+            items = line.split("`")
             if count % 2 == 1:
                 lines[i] = f'<pre><code class="{items[-1]}">'
             else:
-                lines[i] = f'</code></pre>'
+                lines[i] = f"</code></pre>"
         else:
             if i > 0:
                 if count % 2 == 1:
                     line = line.replace("&", "&amp;")
-                    line = line.replace("\"", "&quot;")
-                    line = line.replace("\'", "&apos;")
+                    line = line.replace('"', "&quot;")
+                    line = line.replace("'", "&apos;")
                     line = line.replace("<", "&lt;")
                     line = line.replace(">", "&gt;")
                     line = line.replace(" ", "&nbsp;")
-                lines[i] = '<br/>'+line
+                lines[i] = "<br/>" + line
     return "".join(lines)
 
 
 def language_classifity(sentence: str) -> Literal["zh", "en"]:
-    chinese_chars = re.findall(r'[\u4e00-\u9fff]', sentence)
-    english_chars = re.findall(r'[a-zA-Z]', sentence)
+    chinese_chars = re.findall(r"[\u4e00-\u9fff]", sentence)
+    english_chars = re.findall(r"[a-zA-Z]", sentence)
 
     if len(chinese_chars) > len(english_chars):
         return "zh"
@@ -59,23 +59,22 @@ def language_classifity(sentence: str) -> Literal["zh", "en"]:
 
 def split_sentence_zh(text: str) -> list[str]:
     text = text.strip()
-    text = re.sub(r'([。！？~～?.])([^”’])', r'\1\n\2', text)
-    text = re.sub(r'([\.。]{2,}|…{2,})([^”’])', r'\1\n\2', text)
-    text = re.sub(r'([。！？~～?.][”’])([^，。！？?.])', r'\1\n\2', text)
+    text = re.sub(r"([。！？~～?.])([^”’])", r"\1\n\2", text)
+    text = re.sub(r"([\.。]{2,}|…{2,})([^”’])", r"\1\n\2", text)
+    text = re.sub(r"([。！？~～?.][”’])([^，。！？?.])", r"\1\n\2", text)
 
-    return [line.strip() for line in text.split('\n') if line.strip()]
+    return [line.strip() for line in text.split("\n") if line.strip()]
 
 
 def split_sentence_en(text: str) -> list[str]:
     text = text.strip()
-    text = re.sub(r'([.!?])(\s+)([A-Z])', r'\1\n\3', text)
+    text = re.sub(r"([.!?])(\s+)([A-Z])", r"\1\n\3", text)
     text = text.strip()
     return [line.strip() for line in text.split("\n") if line.strip()]
 
 
 def auto_split_sentence(
-    text: str, 
-    language: Literal["zh", "en", None] = None
+    text: str, language: Literal["zh", "en", None] = None
 ) -> list[str]:
     language = language if language else language_classifity(text)
     if language == "zh":
@@ -84,10 +83,7 @@ def auto_split_sentence(
         return split_sentence_en(text)
 
 
-def typing_time_calculate(
-    text: str, 
-    language: Literal["zh", "en", None] = None
-) -> float:
+def typing_time_calculate(text: str, language: Literal["zh", "en", None] = None) -> float:
     language = language if language else language_classifity(text)
     typing_time = len(text) / 3.0 / (5.0 if language == "en" else 1.0)
     return typing_time + random.random()

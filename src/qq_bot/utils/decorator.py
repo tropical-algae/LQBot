@@ -19,31 +19,31 @@ def function_retry(times=None):
     Args:
         times (_type_, optional): 重试次数. Defaults to None.
     """
+
     def decorator(func):
         is_coroutine = asyncio.iscoroutinefunction(func)
 
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
             is_method = len(args) > 0 and inspect.isclass(type(args[0]))
-            max_times = getattr(args[0], 'times', 3) if is_method else (times or 3)
-            
+            max_times = getattr(args[0], "times", 3) if is_method else (times or 3)
+
             self = args[0] if is_method else None
             func_path = f"{type(self).__name__ + '.' if self else ''}{func.__name__}"
-            
 
             for attempt in range(1, max_times + 1):
                 result = await func(*args, **kwargs)
                 if result is not None:
                     return result
-                logger.warning(f"RETRY[{attempt}/{max_times}]: function -> {func_path}")
-            logger.warning(f"RETRY CAN NOT FIX ERROR: function -> {func_path}")
+                logger.warning(f"重试[{attempt}/{max_times}]: function -> {func_path}")
+            logger.warning(f"重试未能解决问题: function -> {func_path}")
             return None
 
         @functools.wraps(func)
         def sync_wrapper(*args, **kwargs):
             is_method = len(args) > 0 and inspect.isclass(type(args[0]))
-            max_times = getattr(args[0], 'times', 3) if is_method else (times or 3)
-            
+            max_times = getattr(args[0], "times", 3) if is_method else (times or 3)
+
             self = args[0] if is_method else None
             func_path = f"{type(self).__name__ + '.' if self else ''}{func.__name__}"
 
@@ -81,7 +81,7 @@ class MessageCommands:
         @functools.wraps(func)
         async def decorator(*args, **kwargs):
             origin_msg: BaseMessage = kwargs["origin_msg"]
-            
+
             # 处理群聊指令
             if isinstance(origin_msg, GroupMessage):
                 func_name = func.__name__
@@ -91,21 +91,41 @@ class MessageCommands:
                 # 检测黑白名单
                 if white_list:
                     if origin_msg.group_id not in white_list:
-                        logger.warning(f"GROUP [{origin_msg.group_id}] 未添加功能白名单：{func_name}")
+                        logger.warning(
+                            f"GROUP [{origin_msg.group_id}] 未添加功能白名单：{func_name}"
+                        )
                         return False
                 elif origin_msg.group_id in black_list:
-                    logger.warning(f"GROUP [{origin_msg.group_id}] 功能被拉黑：{func_name}")
+                    logger.warning(
+                        f"GROUP [{origin_msg.group_id}] 功能被拉黑：{func_name}"
+                    )
                     return False
 
-                content: str = get_data_from_message(origin_msg.message, "text").get("text", "").strip()
-                at: bool = (
-                    True if not self.need_at else 
-                    (str(get_data_from_message(origin_msg.message, "at").get("qq", "-1")) == str(origin_msg.self_id))
+                content: str = (
+                    get_data_from_message(origin_msg.message, "text")
+                    .get("text", "")
+                    .strip()
                 )
-            
+                at: bool = (
+                    True
+                    if not self.need_at
+                    else (
+                        str(
+                            get_data_from_message(origin_msg.message, "at").get(
+                                "qq", "-1"
+                            )
+                        )
+                        == str(origin_msg.self_id)
+                    )
+                )
+
             # 处理私聊指令
             elif isinstance(origin_msg, PrivateMessage):
-                content: str = get_data_from_message(origin_msg.message, "text").get("text", "").strip()
+                content: str = (
+                    get_data_from_message(origin_msg.message, "text")
+                    .get("text", "")
+                    .strip()
+                )
                 at: bool = True
 
             # 判断🐟执行
@@ -121,9 +141,9 @@ class MessageCommands:
 
         return decorator
 
+
 def tools_logger(cls):
-    """agent工具的日志装饰器
-    """
+    """agent工具的日志装饰器"""
     tool_function = cls.function
 
     @functools.wraps(tool_function)
@@ -145,21 +165,25 @@ def sql_session(func: Callable):
     """SQL连接装饰器，兼容同步和异步方法
 
     Args:
-        func (Callable): 
+        func (Callable):
 
     Returns:
-        _type_: 
+        _type_:
     """
     if inspect.iscoroutinefunction(func):
+
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
             with LocalSession() as db:
                 kwargs["db"] = db
                 return await func(*args, **kwargs)
+
         return async_wrapper  # type: ignore
     else:
+
         @functools.wraps(func)
         def sync_wrapper(*args, **kwargs):
             with LocalSession() as db:
                 return func(*args, db=db, **kwargs)
-        return sync_wrapper 
+
+        return sync_wrapper

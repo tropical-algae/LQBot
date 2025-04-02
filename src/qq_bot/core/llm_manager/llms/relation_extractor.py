@@ -25,30 +25,31 @@ class LLMRelationExtractor(OpenAIBase):
         **kwargs,
     ) -> None:
         super().__init__(
-            base_url=base_url, 
-            api_key=api_key, 
-            prompt_path=prompt_path, 
-            max_retries=max_retries, 
+            base_url=base_url,
+            api_key=api_key,
+            prompt_path=prompt_path,
+            max_retries=max_retries,
             retry=retry,
-            **kwargs
+            **kwargs,
         )
 
-    async def run(
-        self, 
-        message: list[GroupMessageRecord],
-        **kwargs
-    ) -> list[dict]:
-        
+    async def run(self, message: list[GroupMessageRecord], **kwargs) -> list[dict]:
         # TODO 完善实体关系抽取
         # messages = [f"[{m.sender.nikename or 'QQ用户'}][{m.send_time}]: '{m.content}'" for m in message]
         messages = message
-        content = [self.format_user_message(self._set_prompt(input={"text": "\n".join(messages)}))]
+        content = [
+            self.format_user_message(
+                self._set_prompt(input={"text": "\n".join(messages)})
+            )
+        ]
         response = await self._async_inference(content=content, **kwargs)
         if response and response.content:
             response_parsed: list = extract_json_from_markdown(response.content)
             if len(response_parsed) > 0:
                 triplets: list[dict] = response_parsed[-1]
-                logger.info(f"[{self.__model_tag__}]: 抽取实体关系共[{len(triplets)}组 -> {str(triplets)}")
+                logger.info(
+                    f"[{self.__model_tag__}]: 抽取实体关系共[{len(triplets)}组 -> {str(triplets)}"
+                )
                 return triplets
 
             logger.info(f"[{self.__model_tag__}]: 实体解析失败 -> 文本未匹配")

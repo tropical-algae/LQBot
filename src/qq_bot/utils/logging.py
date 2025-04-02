@@ -26,7 +26,9 @@ def generate_filepath(filename: str, filepath: str) -> str:
     return os.path.join(filepath, filename)
 
 
-def set_handler_no_color(config: dict, formatter_key: str, handlers_key: str, **kwargs) -> None:
+def set_handler_no_color(
+    config: dict, formatter_key: str, handlers_key: str, **kwargs
+) -> None:
     config["formatters"].setdefault(formatter_key, {})
     config["handlers"].setdefault(handlers_key, {})
 
@@ -39,7 +41,9 @@ def set_handler_no_color(config: dict, formatter_key: str, handlers_key: str, **
     config["handlers"][handlers_key].update({"formatter": formatter_key, **kwargs})
 
 
-def set_handler_with_color(config: dict, formatter_key: str, handlers_key: str, **kwargs) -> None:
+def set_handler_with_color(
+    config: dict, formatter_key: str, handlers_key: str, **kwargs
+) -> None:
     set_handler_no_color(config, formatter_key, handlers_key, **kwargs)
     config["formatters"][formatter_key].update(
         {
@@ -52,14 +56,22 @@ def set_handler_with_color(config: dict, formatter_key: str, handlers_key: str, 
 
 def get_uvicorn_logger_config() -> dict:
     logging_config = LOGGING_CONFIG
-    set_handler_no_color(config=logging_config, formatter_key="default", handlers_key="default")
-    set_handler_no_color(config=logging_config, formatter_key="access", handlers_key="access")
+    set_handler_no_color(
+        config=logging_config, formatter_key="default", handlers_key="default"
+    )
+    set_handler_no_color(
+        config=logging_config, formatter_key="access", handlers_key="access"
+    )
 
     return logging_config
 
 
 def get_system_logger_config(filename: str) -> dict:
-    handlers = [FILE_HANDLER_NAME, CONSOLE_HANDLER_NAME] if settings.LOG_CONSOLE_OUTPUT else [FILE_HANDLER_NAME]
+    handlers = (
+        [FILE_HANDLER_NAME, CONSOLE_HANDLER_NAME]
+        if settings.LOG_CONSOLE_OUTPUT
+        else [FILE_HANDLER_NAME]
+    )
     logging_config = {
         "version": 1,
         "disable_existing_loggers": False,

@@ -14,7 +14,7 @@ class LLMRegistrar:
 
     def _load_model_services(self) -> None:
         import_all_modules_from_package(bot_llms)
-        
+
         model_services = OpenAIBase.__subclasses__()
         logger.info("正在注册模型服务")
         for model_service in model_services:
@@ -29,22 +29,9 @@ class LLMRegistrar:
                 logger.info(f"已注册模型：{tag}")
             else:
                 logger.warning(f"已注册模型：{tag} [未激活 模型不可用]")
-    
+
     def get(self, model_tag: str) -> OpenAIBase | None:
         return self.model_services.get(model_tag, None)
 
 
 llm_registrar = LLMRegistrar(prompt_root=settings.LOCAL_PROMPT_ROOT)
-
-
-# a = [
-#     "[AAA][2025-3-13 13:12:30]:明天去吃饭？",
-#     "[BBB][2025-3-13 13:12:30]:我不去，你们去吧",
-#     "[DDD][2025-3-13 13:12:30]:不是哥们",
-#     "[CCC][2025-3-13 13:12:30]:你们谁玩过沙滩排球",
-#     "[EEE][2025-3-13 13:12:30]:我去",
-#     "[AAA][2025-3-13 13:12:30]:没玩过捏，我只玩过生与死",
-# ]
-
-# b = asyncio.run(llm_registrar.get(settings.RELATION_EXTOR_LLM_CONFIG_NAME).run(message=a))
-# print(b)

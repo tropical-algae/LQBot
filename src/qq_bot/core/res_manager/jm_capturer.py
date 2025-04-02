@@ -14,20 +14,23 @@ class JMDownloader:
         if str(id) not in os.listdir(self.cache_root):
             logger.info(f"Downloading jm [{id}] file...")
             jmcomic.download_album(id, option=self.option)
-        
+
         file_root = os.path.join(self.cache_root, str(id))
         if os.path.isdir(file_root):
-            sub_dirs = sorted([i for i in os.listdir(file_root)], key=lambda x: int(x.split(".")[0]), reverse=False)
+            sub_dirs = sorted(
+                [i for i in os.listdir(file_root)],
+                key=lambda x: int(x.split(".")[0]),
+                reverse=False,
+            )
             chapter_roots = [
-                os.path.join(file_root, i) 
-                for i in sub_dirs 
+                os.path.join(file_root, i)
+                for i in sub_dirs
                 if os.path.isdir(os.path.join(file_root, i))
             ]
             return chapter_roots
         return []
 
 
-jm = JMDownloader(
-    cache_root=settings.JM_CACHE_ROOT, 
-    option_path=settings.JM_OPTION
+jm_loader = JMDownloader(
+    cache_root=settings.JM_CACHE_ROOT, option_path=settings.JM_OPTION
 )

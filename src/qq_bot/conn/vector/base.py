@@ -9,26 +9,20 @@ from qq_bot.utils.config import settings
 
 def build_filter(condition: dict):
     filter = MetadataFilters(
-        filters=[
-            MetadataFilter(
-                key=key,
-                value=value
-            )
-            for key, value in condition.items()
-        ]
+        filters=[MetadataFilter(key=key, value=value) for key, value in condition.items()]
     )
     return filter
 
 
 class VectorStoreBase:
     def __init__(
-        self, 
-        emb_url: str, 
-        emb_key: str, 
+        self,
+        emb_url: str,
+        emb_key: str,
         emb_model: str,
         store_url: str,
         store_token: str,
-        store_names: str
+        store_names: str,
     ) -> None:
         vector_stores = {
             store_name: MilvusVectorStore(
@@ -69,14 +63,14 @@ class VectorStoreBase:
             show_progress=True,
             transformations=[SentenceSplitter(chunk_size=2048)],
         )
-    
+
     async def select_related_embedding(
         self,
-        text: str, 
+        text: str,
         store_name: str,
-        top_k: int = 5, 
+        top_k: int = 5,
         threshold: float = 0.5,
-        filter: MetadataFilters | None = None
+        filter: MetadataFilters | None = None,
     ) -> list:
         params = {"similarity_top_k": top_k}
         if filter:
@@ -86,14 +80,11 @@ class VectorStoreBase:
             vector_store=self.vector_store[store_name],
             embed_model=self.embed_model,
         ).as_retriever(**params)
-        
+
         result: list[NodeWithScore] = await retriever.aretrieve(text)
-        
+
         return [data for data in result if data.score > threshold]
 
-
-    
-    
 
 vector_store = VectorStoreBase(
     emb_url=settings.EMBEDDING_BASE_URL,

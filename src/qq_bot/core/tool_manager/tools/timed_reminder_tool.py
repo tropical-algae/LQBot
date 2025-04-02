@@ -1,5 +1,3 @@
-
-
 import asyncio
 
 from sqlmodel import Session
@@ -11,6 +9,7 @@ from qq_bot.utils.decorator import sql_session, tools_logger
 from qq_bot.utils.models import GroupMessageRecord
 from qq_bot.utils.util_text import trans_int
 from qq_bot.utils.logging import logger
+
 
 @tools_logger
 class TimedReminderTool(ToolBase):
@@ -24,22 +23,31 @@ class TimedReminderTool(ToolBase):
                 "type": "object",
                 "required": ["user", "time", "message"],
                 "properties": {
-                    "user": {"type": "string", "description": "你要提醒的那位用户的昵称"},
-                    "time": {"type": "string", "description": "何时提醒（注意分析时间），遵循格式：YYYY-MM-DD HH:MM:SS"},
-                    "message": {"type": "string", "description": "（以第一人称角度）你提醒用户时所说的话"},
+                    "user": {
+                        "type": "string",
+                        "description": "你要提醒的那位用户的昵称",
+                    },
+                    "time": {
+                        "type": "string",
+                        "description": "何时提醒（注意分析时间），遵循格式：YYYY-MM-DD HH:MM:SS",
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "（以第一人称角度）你提醒用户时所说的话",
+                    },
                 },
             },
         },
-        'is_meta': False
+        "is_meta": False,
     }
 
     @staticmethod
     def function(
         agent: AgentBase,
         user_msg: GroupMessageRecord,
-        user: str, 
+        user: str,
         time: str,
-        message: str
+        message: str,
     ) -> bool:
         def send_message_to_user_wrapper():
             @sql_session
@@ -51,17 +59,22 @@ class TimedReminderTool(ToolBase):
                 uid: int | None = None
                 response = await agent.api.get_group_member_list(user_msg.group_id)
                 if response["status"] == "ok":
-                    uid = next((umodel["user_id"] for umodel in response["data"] if umodel["nickname"] == user), None)
+                    uid = next(
+                        (
+                            umodel["user_id"]
+                            for umodel in response["data"]
+                            if umodel["nickname"] == user
+                        ),
+                        None,
+                    )
 
                 text = f"{message}\n"
                 if uid is None:
                     text = f"TO: {user}\n{message}"
-                
+
                 # 发送消息
                 result = await agent.api.post_group_msg(
-                    group_id=user_msg.group_id,
-                    at=uid,
-                    text=text
+                    group_id=user_msg.group_id, at=uid, text=text
                 )
                 if result["status"] == "ok":
                     logger.info(f"定时提醒已触发: [主体 - {user}]{time} -> {message}")
@@ -78,16 +91,16 @@ class TimedReminderTool(ToolBase):
                 interval=time,
                 # kwargs=
             )
-            
+
             # 发送提示信息
             asyncio.get_event_loop().create_task(
                 agent.api.post_group_msg(
-                    group_id=user_msg.group_id, 
+                    group_id=user_msg.group_id,
                     text=f"已建立日程提醒任务\n主体人: {user}\nTime: {time}\nTheme: {user_msg.content}\n",
-                    at=user_msg.sender.id
+                    at=user_msg.sender.id,
                 )
             )
-            
+
             return True
         except Exception as err:
             logger.error(err)

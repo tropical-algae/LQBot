@@ -15,7 +15,7 @@ class MinioServer:
             endpoint=endpoint,
             access_key=access_key,
             secret_key=secret_key,
-            secure=False  # 使用http
+            secure=False,  # 使用http
         )
         self.buckets = buckets
         self._init_bucket()
@@ -25,11 +25,7 @@ class MinioServer:
             if not self.client.bucket_exists(bkt_name):
                 self.client.make_bucket(bkt_name)
 
-    def upload_files(
-        self, 
-        bucket: str, 
-        upload_file: dict[str, str]
-    ) -> list[str]:
+    def upload_files(self, bucket: str, upload_file: dict[str, str]) -> list[str]:
         """上传文件
 
         Args:
@@ -42,15 +38,12 @@ class MinioServer:
         results = []
         for file_path, object_name in upload_file.items():
             result = self.client.fput_object(
-                bucket_name=bucket,
-                object_name=object_name,
-                file_path=file_path
+                bucket_name=bucket, object_name=object_name, file_path=file_path
             )
             results.append(result)
         return results
 
     def get_file_url(self, bucket: str, object_path: str | list[str]) -> str | list[str]:
-        
         assert isinstance(object_path, str) or isinstance(object_path, list)
 
         result = []
@@ -61,20 +54,19 @@ class MinioServer:
 
         for d in data:
             result.append(
-                self.client.presigned_get_object(
-                    bucket, d, expires=timedelta(days=1)
-                )
+                self.client.presigned_get_object(bucket, d, expires=timedelta(days=1))
             )
         return result[0] if isinstance(object_path, str) else result
+
 
 minio = MinioServer(
     endpoint=settings.MINIO_ENDPOINT,
     access_key=settings.MINIO_ACCESS_KEY,
     secret_key=settings.MINIO_SCCRET_KEY,
     buckets=[
-        settings.MINIO_JM_BOCKET_NAME, 
-        settings.MINIO_RANDOM_PIC_BOCKET_NAME, 
-        settings.MINIO_RANDOM_SETU_BOCKET_NAME
+        settings.MINIO_JM_BOCKET_NAME,
+        settings.MINIO_RANDOM_PIC_BOCKET_NAME,
+        settings.MINIO_RANDOM_SETU_BOCKET_NAME,
     ],
 )
 

@@ -26,22 +26,22 @@ class LLMToolbox(OpenAIBase):
         **kwargs,
     ) -> None:
         super().__init__(
-            base_url=base_url, 
-            api_key=api_key, 
-            prompt_path=prompt_path, 
-            max_retries=max_retries, 
+            base_url=base_url,
+            api_key=api_key,
+            prompt_path=prompt_path,
+            max_retries=max_retries,
             retry=retry,
-            **kwargs
+            **kwargs,
         )
 
     async def run(
-        self, 
-        message: GroupMessageRecord,
-        **kwargs
+        self, message: GroupMessageRecord, **kwargs
     ) -> list[ChatCompletionMessageToolCall] | None:
         content = f"消息发送者：{message.sender.nikename}\n当前时间：{message.send_time}\n消息：{message.content}"
         # messages = [f"[{m.sender.nikename or 'QQ用户'}][{m.send_time}]: '{m.content}'" for m in message]
-        response = await self._async_inference(content=content, tool_choice="auto", **kwargs)
+        response = await self._async_inference(
+            content=content, tool_choice="auto", **kwargs
+        )
         if response:
             return response.tool_calls
         return None

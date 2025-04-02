@@ -7,7 +7,7 @@ from qq_bot.utils.util_text import trans_str
 
 
 def insert_group_message(
-    db: Session, 
+    db: Session,
     message: GroupMessageRecord,
 ) -> None:
     new_msg = GroupMessageV1(
@@ -26,7 +26,7 @@ def insert_group_message(
 
 
 def insert_group_messages(
-    db: Session, 
+    db: Session,
     messages: list[GroupMessageRecord],
 ) -> None:
     db.bulk_insert_mappings(
@@ -41,7 +41,8 @@ def insert_group_messages(
                 "message": message.content,
                 "from_bot": 1 if message.from_bot else 0,
                 "create_time": message.get_datetime(),
-            } for message in messages
-        ]
+            }
+            for message in messages
+        ],
     )
     db.commit()
