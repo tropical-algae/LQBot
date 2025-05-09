@@ -33,6 +33,7 @@ jmcomic = "^2.5.32"
 minio = "^7.2.15"
 pillow = "^11.1.0"
 ncatbot = "^3.5.11"
+mcstatus = "^11.1.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2"

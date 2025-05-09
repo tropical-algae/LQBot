@@ -68,7 +68,7 @@ class ServiceSetting(BaseSettings):
     BOT_COMMAND_GROUP_RANDOM_SETU: str = "来点涩图"
 
     # 聊天意愿
-    CHAT_WILLINGNESS: float = 0.12
+    CHAT_WILLINGNESS: float = 0.05
 
     # 第三方资源收集
     JM_CACHE_ROOT: str = "./cache/jm"
@@ -78,6 +78,9 @@ class ServiceSetting(BaseSettings):
     RANDOM_PIC_API_v2: str = "https://image.anosu.top/pixiv/json"
     NEWS_API: str = ""
     NEWS_SOURCES: dict[str, str] = []  # 信源中文名与路由名的映射
+
+    # 指令配置
+    COMMAND_CONFIG_FILE: str = "configs/other/command.yaml"
 
     # 黑白名单（白名单非空时视为开启）
     GROUP_INSTRUCT_BLACK: dict[str, list[int]] = {

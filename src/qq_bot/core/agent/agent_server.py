@@ -106,28 +106,28 @@ async def group_random_chat(
         logger.info(f"回复意愿达标 [{prob:.2f}({real_prob:.2f}) / 1.0]")
 
         llm: LLMChatter = llm_registrar.get(settings.CHATTER_LLM_CONFIG_NAME)
-        reply: str | None = await llm.run(message)
+        bot_reply: str | None = await llm.run(message)
 
-        if not reply:
+        if not bot_reply:
             return False
 
         if need_split:
-            reply_msgs: list[GroupMessageRecord] = []
-            language = language_classifity(reply)
-            replies: list[str] = auto_split_sentence(reply, language)
+            bot_messages: list[GroupMessageRecord] = []
+            language = language_classifity(bot_reply)
+            parts: list[str] = auto_split_sentence(bot_reply, language)
 
-            for text in replies:
-                text = text.strip("。.~～")
-                await asyncio.sleep(typing_time_calculate(text, language))
-                bot_reply = await send_msg_2_group(api, message.group_id, text)
+            for part in parts:
+                part = part.strip("。.~～")
+                await asyncio.sleep(typing_time_calculate(part, language))
+                bot_reply = await send_msg_2_group(api, message.group_id, part, reply=message.id)
                 if bot_reply:
-                    reply_msgs.append(bot_reply)
-            save_msg_2_sql(messages=reply_msgs)
+                    bot_messages.append(bot_reply)
+            save_msg_2_sql(messages=bot_messages)
         else:
-            await asyncio.sleep(typing_time_calculate(reply, language))
-            reply_msg = await send_msg_2_group(api, message.group_id, reply)
-            if reply_msg is not None:
-                save_msg_2_sql(messages=reply_msg)
+            await asyncio.sleep(typing_time_calculate(bot_reply, language))
+            bot_message = await send_msg_2_group(api, message.group_id, bot_reply, reply=message.id)
+            if bot_message is not None:
+                save_msg_2_sql(messages=bot_message)
 
         return True
 

@@ -1,0 +1,7 @@
+docker:
+  blacklist: 
+   - restart
+
+git:
+  blocked_args: 
+    - push

@@ -61,8 +61,7 @@ class DataUpdateTool(ToolBase):
                 tip = "None"
                 news = "新闻/热搜获取失败，API接口异常！"
 
-            template = f"""
-## 今日热搜
+            template = f"""## 今日热搜
 ------------------
 Source: {actual_source_name}
 Current Time: {datetime.now().strftime("%Y-%m-%d %H:%M %A")}
