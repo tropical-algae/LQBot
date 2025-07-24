@@ -9,7 +9,7 @@ from qq_bot.conn.sql.crud.user_crud import (
     select_user_by_ids,
     update_users,
 )
-from qq_bot.core.agent.base import AgentBase
+from qq_bot.core.robot.base import AgentBase
 from qq_bot.utils.decorator import sql_session
 from qq_bot.utils.models import GroupMessageRecord, QUser
 from qq_bot.utils.util_text import (
@@ -24,12 +24,12 @@ from qq_bot.conn.sql.crud.group_message_crud import (
 
 from qq_bot.core import llm_registrar
 from qq_bot.utils.config import settings
-from qq_bot.utils.logging import logger
-from qq_bot.core.llm_manager.llms.chatter import LLMChatter
+from qq_bot.utils.logger import logger
+from qq_bot.core.llm.llms.chatter import LLMChatter
 
 
 @sql_session
-def save_msg_2_sql(
+def record_messages(
     messages: list[GroupMessageRecord] | GroupMessageRecord,
     db: Session | None = None,
 ) -> None:
@@ -49,7 +49,7 @@ def save_msg_2_sql(
 
 
 @sql_session
-def update_group_user_info(
+def update_group_member(
     users: list[QUser], db: Session | None = None
 ) -> tuple[list, list]:
     updated_users: list[str] = []
@@ -77,7 +77,7 @@ def update_group_user_info(
     return updated_users, inserted_users
 
 
-async def send_msg_2_group(
+async def send_message(
     api: BotAPI, group_id: int, text: str, **kwargs
 ) -> GroupMessageRecord | None:
     # file = Path("cache/tts") / f"voice_{uuid.uuid4().hex}.mp3"
@@ -100,45 +100,38 @@ async def send_msg_2_group(
     )
 
 
-async def group_random_chat(
+async def group_chat(
     api: BotAPI,
     message: GroupMessageRecord,
-    prob: float,
-    need_split: bool = True,
+    split: bool = True,
+    voice: bool = True,
 ) -> bool:
-    # 概率触发聊天
-    real_prob = random.random()
-    if real_prob < prob:
-        logger.info(f"回复意愿达标 [{prob:.2f}({real_prob:.2f}) / 1.0]")
+    llm: LLMChatter = llm_registrar.get(settings.CHATTER_LLM_CONFIG_NAME)
+    bot_reply: str | None = await llm.run(message)
 
-        llm: LLMChatter = llm_registrar.get(settings.CHATTER_LLM_CONFIG_NAME)
-        bot_reply: str | None = await llm.run(message)
+    if not bot_reply:
+        return False
 
-        if not bot_reply:
-            return False
+    if split:
+        bot_messages: list[GroupMessageRecord] = []
+        language = language_classifity(bot_reply)
+        parts: list[str] = auto_split_sentence(bot_reply, language)
 
-        if need_split:
-            bot_messages: list[GroupMessageRecord] = []
-            language = language_classifity(bot_reply)
-            parts: list[str] = auto_split_sentence(bot_reply, language)
-
-            for part in parts:
-                part = part.strip("。.~～")
-                # await asyncio.sleep(typing_time_calculate(part, language))
-                # bot_reply = await send_msg_2_group(api, message.group_id, part, reply=message.id)
-                bot_reply = await send_msg_2_group(api, message.group_id, part)
-                
-                if bot_reply:
-                    bot_messages.append(bot_reply)
-            save_msg_2_sql(messages=bot_messages)
-        else:
-            # await asyncio.sleep(typing_time_calculate(bot_reply, language))
-            bot_message = await send_msg_2_group(api, message.group_id, bot_reply)
+        for part in parts:
+            part = part.strip("。.~～")
+            # await asyncio.sleep(typing_time_calculate(part, language))
+            # bot_reply = await send_msg_2_group(api, message.group_id, part, reply=message.id)
+            bot_reply = await send_message(api, message.group_id, part)
             
-            # bot_message = await send_msg_2_group(api, message.group_id, bot_reply, reply=message.id)
-            if bot_message is not None:
-                save_msg_2_sql(messages=bot_message)
+            if bot_reply:
+                bot_messages.append(bot_reply)
+        record_messages(messages=bot_messages)
+    else:
+        # await asyncio.sleep(typing_time_calculate(bot_reply, language))
+        bot_message = await send_message(api, message.group_id, bot_reply)
+        
+        # bot_message = await send_msg_2_group(api, message.group_id, bot_reply, reply=message.id)
+        if bot_message is not None:
+            record_messages(messages=bot_message)
 
-        return True
-
-    return False
+    return True

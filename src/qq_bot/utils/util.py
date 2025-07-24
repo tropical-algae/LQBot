@@ -12,7 +12,7 @@ from typing import Literal
 import yaml
 from PIL import Image
 from ncatbot.core import GroupMessage
-from qq_bot.utils.logging import logger
+from qq_bot.utils.logger import logger
 
 
 def load_yaml(yaml_path: str) -> dict:
@@ -32,7 +32,7 @@ def import_all_modules_from_package(package):
     Args:
         package (_type_): 包名
     """
-    for importer, modname, ispkg in pkgutil.walk_packages(
+    for _, modname, _ in pkgutil.walk_packages(
         package.__path__, package.__name__ + "."
     ):
         importlib.import_module(modname)

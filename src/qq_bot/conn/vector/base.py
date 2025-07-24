@@ -4,7 +4,9 @@ from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.vector_stores.milvus import MilvusVectorStore
 from llama_index.core import StorageContext, VectorStoreIndex, Document
 from llama_index.core.vector_stores.types import MetadataFilters, MetadataFilter
+from qq_bot.base import ComponentBase
 from qq_bot.utils.config import settings
+from qq_bot.utils.decorator import require_active
 
 
 def build_filter(condition: dict):
@@ -14,7 +16,8 @@ def build_filter(condition: dict):
     return filter
 
 
-class VectorStoreBase:
+class VectorStoreBase(ComponentBase):
+    
     def __init__(
         self,
         emb_url: str,
@@ -24,6 +27,14 @@ class VectorStoreBase:
         store_token: str,
         store_names: str,
     ) -> None:
+        super().__init__(
+            emb_url=emb_url,
+            emb_key=emb_key,
+            emb_model=emb_model,
+            store_url=store_url,
+            store_token=store_token,
+            store_names=store_names
+        )
         vector_stores = {
             store_name: MilvusVectorStore(
                 uri=store_url,
@@ -54,6 +65,7 @@ class VectorStoreBase:
             for name, vector_store in vector_stores.items()
         }
 
+    @require_active
     def insert_vector(self, documents: list[Document], store_name: str) -> None:
         VectorStoreIndex.from_documents(
             documents=documents,
@@ -64,6 +76,7 @@ class VectorStoreBase:
             transformations=[SentenceSplitter(chunk_size=2048)],
         )
 
+    @require_active
     async def select_related_embedding(
         self,
         text: str,

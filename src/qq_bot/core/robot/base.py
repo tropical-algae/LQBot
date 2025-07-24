@@ -1,12 +1,10 @@
 from ncatbot.plugin import BasePlugin
 from ncatbot.core import BotClient
-from qq_bot.core.tool_manager.base import ToolRegistrarBase
 
 
 class AgentBase(BasePlugin):
     def __init__(self, **kwargs):
         self.bot: BotClient | None = None
-        self.tools: ToolRegistrarBase | None = None
 
         super().__init__(**kwargs)
 

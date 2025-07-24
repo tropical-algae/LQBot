@@ -1,8 +1,8 @@
 import os
 from qq_bot.utils.config import settings
-from qq_bot.utils.logging import logger
-from qq_bot.core.llm_manager.llms.base import OpenAIBase
-import qq_bot.core.llm_manager.llms as bot_llms
+from qq_bot.utils.logger import logger
+from qq_bot.core.llm.base import OpenAIBase
+import qq_bot.core.llm.llms as bot_llms
 from qq_bot.utils.util import import_all_modules_from_package
 
 

@@ -2,7 +2,7 @@ import json
 import random
 import re
 from typing import Literal
-from qq_bot.utils.logging import logger
+from qq_bot.utils.logger import logger
 
 
 def get_data_from_message(message: list[dict], type: str) -> dict:

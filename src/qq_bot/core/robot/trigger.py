@@ -1,17 +1,19 @@
 import os
 from datetime import datetime
+import random
 from ncatbot.core import BotAPI, BotClient, GroupMessage, PrivateMessage
 from PIL import Image
 
-from qq_bot.core.agent.base import AgentBase
+from qq_bot.core.robot.base import AgentBase
 from qq_bot.utils.decorator import MessageCommands
 from qq_bot.utils.models import GroupMessageRecord
 from qq_bot.utils.util import blue_image
-from qq_bot.core.agent.agent_server import group_random_chat
-from qq_bot.core import random_pic_provider
+from qq_bot.core.robot.service import group_chat
+from qq_bot.core import wallpaper_provider
+from qq_bot.core.components.toolbox import tool_component
 from qq_bot.conn.minio.base import minio
 from qq_bot.utils.config import settings
-from qq_bot.utils.logging import logger
+from qq_bot.utils.logger import logger
 
 
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_RANDOM_PIC}")
@@ -20,13 +22,13 @@ async def group_random_picture(
 ) -> bool:
     logger.info(f"[{message.id}] 随机图片命令触发")
 
-    local_file, url = random_pic_provider.load()
+    local_file, url = wallpaper_provider.load()
     if local_file:
         remote_file = os.path.join(
             datetime.now().strftime("%Y-%m"), os.path.basename(local_file)
         )
         minio.upload_files(
-            bucket=settings.MINIO_RANDOM_PIC_BOCKET_NAME,
+            bucket=settings.MINIO_WALLPAPER_BOCKET_NAME,
             upload_file={local_file: remote_file},
         )
 
@@ -44,7 +46,7 @@ async def group_random_setu(
     num = 1
 
     logger.info(f"[SETU]: GROUP {message.group_id} -> 准备发送{num}张")
-    for local_file_origin, url in random_pic_provider.load_r18(num=num):
+    for local_file_origin, url in wallpaper_provider.load_r18(num=num):
         if local_file_origin and url:
             local_time = datetime.now().strftime("%Y-%m")
             remote_file_origin = os.path.join(
@@ -56,7 +58,7 @@ async def group_random_setu(
             blue_image(Image.open(local_file_origin)).save(local_file_processed)
 
             minio.upload_files(
-                bucket=settings.MINIO_RANDOM_PIC_BOCKET_NAME,
+                bucket=settings.MINIO_WALLPAPER_BOCKET_NAME,
                 upload_file={local_file_origin: remote_file_origin},
             )
             bastion_message = await agent.api.post_group_msg(
@@ -80,7 +82,7 @@ async def group_random_setu(
 
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_TOOL}", need_at=True)
 async def group_use_tool(agent: AgentBase, message: GroupMessageRecord, **kwargs) -> bool:
-    status = await agent.tools.run(message=message)
+    status = await tool_component.run(agent=agent, message=message)
     if status:
         logger.info(f"[{message.id}] 工具调用触发")
 
@@ -89,20 +91,17 @@ async def group_use_tool(agent: AgentBase, message: GroupMessageRecord, **kwargs
 
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_REPLY}", need_at=True)
 async def group_at_reply(agent: AgentBase, message: GroupMessageRecord, **kwargs) -> bool:
-    status = await group_random_chat(
-        api=agent.api, message=message, prob=1.0, need_split=False
-    )
+    use_voice: bool = random.random() < settings.VOICE_WILLINGNESS
+    status = await group_chat(api=agent.api, message=message, split=False, voice=use_voice)
     if status:
         logger.info(f"[{message.id}] AT回复触发")
 
 
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_CHAT}")
 async def group_at_chat(agent: AgentBase, message: GroupMessageRecord, **kwargs) -> bool:
-    status = await group_random_chat(
-        api=agent.api,
-        message=message,
-        prob=settings.CHAT_WILLINGNESS,
-        need_split=False,
-    )
-    if status:
-        logger.info(f"[{message.id}] 随机聊天触发")
+    can_chat: bool = random.random() < settings.CHAT_WILLINGNESS
+    use_voice: bool = random.random() < settings.VOICE_WILLINGNESS
+    if can_chat:
+        status = await group_chat(api=agent.api, message=message, split=False, voice=use_voice)
+        if status:
+            logger.info(f"[{message.id}] 随机聊天触发")

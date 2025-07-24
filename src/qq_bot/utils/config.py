@@ -29,9 +29,19 @@ class DBSetting(BaseSettings):
     MINIO_ACCESS_KEY: str = ""
     MINIO_SCCRET_KEY: str = ""
     MINIO_JM_BOCKET_NAME: str = "jm-repertory"
-    MINIO_RANDOM_PIC_BOCKET_NAME: str = "random-pic"
-    MINIO_RANDOM_SETU_BOCKET_NAME: str = "random-st"
+    MINIO_WALLPAPER_BOCKET_NAME: str = "wallpaper"
+    MINIO_WALLPAPER_R18_BOCKET_NAME: str = "wallpaper-r18"
 
+
+class NameSetting(BaseSettings):
+    TOOLBOX_COMPONENT_NAME: str = "toolbox"
+    WALLPAPER_COMPONENT_NAME: str = "wallpaper provider"
+    NEWS_COMPONENT_NAME: str = "news collector"
+    COMMAND_COMPONENT_NAME: str = "command manager"
+    MINIO_COMPONENT_NAME: str = "minio"
+    MYSQL_COMPONENT_NAME: str = "mysql"
+    VECTOR_RETRIEVER_COMPONENT_NAME: str = "vector retriever"
+    
 
 class LogSetting(BaseSettings):
     # logger
@@ -68,14 +78,15 @@ class ServiceSetting(BaseSettings):
     BOT_COMMAND_GROUP_RANDOM_SETU: str = "来点涩图"
 
     # 聊天意愿
-    CHAT_WILLINGNESS: float = 0.05
+    CHAT_WILLINGNESS: float = 0.03
+    VOICE_WILLINGNESS: float = 0.3
 
     # 第三方资源收集
     JM_CACHE_ROOT: str = "./cache/jm"
     JM_OPTION: str = "./configs/jm/option.yml"
     RANDOM_PIC_CACHE_ROOT: str = "./cache/random_pic"
-    RANDOM_PIC_API_v1: str = "https://api.anosu.top/img"
-    RANDOM_PIC_API_v2: str = "https://image.anosu.top/pixiv/json"
+    WALLPAPER_API: str = "https://api.anosu.top/img"
+    WALLPAPER_R18_API: str = "https://image.anosu.top/pixiv/json"
     NEWS_API: str = ""
     NEWS_SOURCES: dict[str, str] = []  # 信源中文名与路由名的映射
 
@@ -84,22 +95,22 @@ class ServiceSetting(BaseSettings):
 
     # 黑白名单（白名单非空时视为开启）
     GROUP_INSTRUCT_BLACK: dict[str, list[int]] = {
-        "group_random_picture": [],
-        "group_random_setu": [],
+        "group_wallpaper": [],
+        "group_wallpaper_r18": [],
         "group_use_tool": [],
         "group_at_reply": [],
         "group_at_chat": [],
     }
     GROUP_INSTRUCT_WHITE: dict[str, list[int]] = {
-        "group_random_picture": [],
-        "group_random_setu": [],
+        "group_wallpaper": [],
+        "group_wallpaper_r18": [],
         "group_use_tool": [],
         "group_at_reply": [],
         "group_at_chat": [],
     }
 
 
-class Setting(SysSetting, DBSetting, LogSetting, ServiceSetting):
+class Setting(SysSetting, DBSetting, NameSetting, LogSetting, ServiceSetting):
     class Config:
         env_file = ".env"
         case_sensitive = True

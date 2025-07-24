@@ -1,18 +1,18 @@
 from ncatbot.core import GroupMessage, PrivateMessage
-from qq_bot.core.agent.base import AgentBase
+from qq_bot.core.robot.base import AgentBase
 from ncatbot.plugin import CompatibleEnrollment
-from qq_bot.core.tool_manager.tool_registrar import ToolRegistrar
-from qq_bot.core.agent.agent_command import (
+from qq_bot.core.components.toolbox import ToolRegistrar
+from qq_bot.core.robot.trigger import (
     group_at_chat,
     group_at_reply,
     group_random_picture,
     group_random_setu,
     group_use_tool,
 )
-from qq_bot.core.agent.agent_server import save_msg_2_sql
+from qq_bot.core.robot.service import record_messages
 from qq_bot.core import llm_registrar
 from qq_bot.utils.models import GroupMessageRecord
-from qq_bot.utils.logging import logger
+from qq_bot.utils.logger import logger
 from qq_bot.utils.config import settings
 
 
@@ -25,7 +25,6 @@ class LQBot(AgentBase):
 
         logger.info(f"加载插件")
         self.bot = CompatibleEnrollment
-        self.tools = ToolRegistrar(agent=self)
 
         # 指令（**检测有顺序区分**）
         self.group_command = [
@@ -52,7 +51,7 @@ class LQBot(AgentBase):
             # 聊天信息存储mysql
             # 更新chatter记忆
             if user_msg.content != "":
-                save_msg_2_sql(messages=user_msg)
+                record_messages(messages=user_msg)
                 (
                     llm_registrar.get(
                         settings.CHATTER_LLM_CONFIG_NAME

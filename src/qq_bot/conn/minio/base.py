@@ -1,9 +1,13 @@
 from minio import Minio
 from datetime import timedelta
+from qq_bot.base import ComponentBase
 from qq_bot.utils.config import settings
+from qq_bot.utils.decorator import require_active
 
 
-class MinioServer:
+class MinioServer(ComponentBase):
+    __component_name__ = settings.MINIO_COMPONENT_NAME
+    
     def __init__(
         self,
         endpoint: str,
@@ -11,12 +15,11 @@ class MinioServer:
         secret_key: str,
         buckets: list[str],
     ):
-        self.client = Minio(
-            endpoint=endpoint,
-            access_key=access_key,
-            secret_key=secret_key,
-            secure=False,  # 使用http
-        )
+        super().__init__(endpoint=endpoint, access_key=access_key, secret_key=secret_key, buckets=buckets)
+        if not self.active:
+            return
+        
+        self.client = Minio(endpoint=endpoint, access_key=access_key, secret_key=secret_key, secure=False)
         self.buckets = buckets
         self._init_bucket()
 
@@ -25,6 +28,7 @@ class MinioServer:
             if not self.client.bucket_exists(bkt_name):
                 self.client.make_bucket(bkt_name)
 
+    @require_active
     def upload_files(self, bucket: str, upload_file: dict[str, str]) -> list[str]:
         """上传文件
 
@@ -43,6 +47,7 @@ class MinioServer:
             results.append(result)
         return results
 
+    @require_active
     def get_file_url(self, bucket: str, object_path: str | list[str]) -> str | list[str]:
         assert isinstance(object_path, str) or isinstance(object_path, list)
 
@@ -65,8 +70,8 @@ minio = MinioServer(
     secret_key=settings.MINIO_SCCRET_KEY,
     buckets=[
         settings.MINIO_JM_BOCKET_NAME,
-        settings.MINIO_RANDOM_PIC_BOCKET_NAME,
-        settings.MINIO_RANDOM_SETU_BOCKET_NAME,
+        settings.MINIO_WALLPAPER_BOCKET_NAME,
+        settings.MINIO_WALLPAPER_R18_BOCKET_NAME,
     ],
 )
 

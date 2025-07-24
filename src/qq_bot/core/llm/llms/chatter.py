@@ -7,10 +7,10 @@ from typing import Any, Optional
 from itertools import chain
 from qq_bot.utils.models import GroupMessageRecord
 from qq_bot.utils.util_text import parse_text
-from qq_bot.core.llm_manager.llms.base import OpenAIBase
+from qq_bot.core.llm.base import OpenAIBase
 
 from qq_bot.utils.config import settings
-from qq_bot.utils.logging import logger
+from qq_bot.utils.logger import logger
 
 
 class LLMChatter(OpenAIBase):

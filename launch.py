@@ -6,7 +6,7 @@ import json
 from ncatbot.utils.config import config
 from ncatbot.core import BotAPI, BotClient, GroupMessage, PrivateMessage
 
-from qq_bot.utils.logging import logger
+from qq_bot.utils.logger import logger
 from qq_bot.utils.config import settings
 
 

@@ -1,11 +1,11 @@
 import asyncio
 import functools
 import inspect
-from typing import Callable
+from typing import Any, Callable
 from ncatbot.core.message import BaseMessage, GroupMessage, PrivateMessage
 from qq_bot.conn.sql.session import LocalSession
 
-from qq_bot.utils.logging import logger
+from qq_bot.utils.logger import logger
 from qq_bot.utils.config import settings
 from qq_bot.utils.util_text import get_data_from_message
 
@@ -187,3 +187,58 @@ def sql_session(func: Callable):
                 return func(*args, db=db, **kwargs)
 
         return sync_wrapper
+
+
+def require_active(method: Callable = None, *, forcible: bool = False):
+    """Decorator to check if self.active is True, unless forcible=True. Supports sync and async methods."""
+
+    def decorator(func: Callable):
+        is_async = inspect.iscoroutinefunction(func)
+
+        @functools.wraps(func)
+        async def async_wrapper(self, *args, **kwargs) -> Any:
+            active = getattr(self, "active", True)
+            component = getattr(self, "__component_name__", None) or func.__name__
+            if active:
+                return await func(self, *args, **kwargs)
+            if forcible:
+                raise RuntimeError(f"Function {component} not activated")
+            return None
+
+        @functools.wraps(func)
+        def sync_wrapper(self, *args, **kwargs) -> Any:
+            active = getattr(self, "active", True)
+            component = getattr(self, "__component_name__", None) or func.__name__
+            if active:
+                return func(self, *args, **kwargs)
+            if forcible:
+                raise RuntimeError(f"Function {component} not activated")
+            return None
+
+        return async_wrapper if is_async else sync_wrapper
+
+    # Support @require_active or @require_active(forcible=True)
+    if method is not None and callable(method):
+        return decorator(method)
+    return decorator
+
+# def require_active(method: Callable = None, *, forcible: bool = False):
+#     """Decorator to check if self.active is True, unless forcible=True"""
+    
+#     def decorator(func: Callable):
+#         @functools.wraps(func)
+#         def wrapper(self, *args, **kwargs) -> Any:
+#             active = getattr(self, "active", True)
+#             component = getattr(self, "__component_name__", None) or func.__name__
+#             if active:
+#                 return func(self, *args, **kwargs)
+#             if forcible:
+#                 raise RuntimeError(f"Function {component} not activated")
+#             return None
+
+#         return wrapper
+
+#     # Detect if used as @require_active or @require_active()
+#     if method is not None and callable(method):
+#         return decorator(method)  # used as @require_active
+#     return decorator  # used as @require_active(forcible=True)

@@ -1,12 +1,12 @@
 import asyncio
 from datetime import datetime
 
-from qq_bot.core.agent.base import AgentBase
-from qq_bot.core.tool_manager.tools.base import ToolBase
+from qq_bot.core.robot.base import AgentBase
+from qq_bot.core.components.tools.base import ToolBase
 from qq_bot.utils.decorator import tools_logger
 from qq_bot.utils.models import GroupMessageRecord, QUser
 from qq_bot.core import news_provider
-from qq_bot.utils.logging import logger
+from qq_bot.utils.logger import logger
 from qq_bot.utils.config import settings
 
 

@@ -2,13 +2,17 @@ import json
 import random
 import requests
 
+from qq_bot.base import ComponentBase
 from qq_bot.utils.decorator import function_retry
-from qq_bot.utils.logging import logger
+from qq_bot.utils.logger import logger
 from qq_bot.utils.config import settings
 
 
-class NewsProvider:
+class NewsProvider(ComponentBase):
+    __component_name__ = settings.NEWS_COMPONENT_NAME
+    
     def __init__(self, url: str, sources: dict[str, str]) -> tuple[str, list] | None:
+        super().__init__(url=url, sources=sources)
         self.url = f"{url}{'' if url.endswith('/') else '/'}"
         self.sources: dict[str, str] = sources
         self.sources_name: list[str] = list(sources.keys())

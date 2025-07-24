@@ -7,10 +7,10 @@ from itertools import chain
 
 from openai.types.chat import ChatCompletionMessageToolCall
 from qq_bot.utils.models import GroupMessageRecord
-from qq_bot.core.llm_manager.llms.base import OpenAIBase
+from qq_bot.core.llm.base import OpenAIBase
 
 from qq_bot.utils.config import settings
-from qq_bot.utils.logging import logger
+from qq_bot.utils.logger import logger
 
 
 class LLMToolbox(OpenAIBase):
