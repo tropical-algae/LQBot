@@ -1,7 +1,7 @@
-import json
-import ncatbot.utils.literals as literals
+import ncatbot.utils as utils
+utils.PLUGINS_DIR = "src"
 
-literals.PLUGINS_DIR = "src"
+import json
 
 from ncatbot.utils.config import config
 from ncatbot.core import BotAPI, BotClient, GroupMessage, PrivateMessage

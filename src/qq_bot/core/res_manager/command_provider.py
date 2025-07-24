@@ -4,7 +4,7 @@ from qq_bot.utils.util import load_yaml
 from qq_bot.utils.config import settings
 
 
-class CommandRunner:
+class CommandProvider:
     def __init__(self, config_path: str):
         self.command_config = load_yaml(config_path)
 
@@ -37,4 +37,4 @@ class CommandRunner:
         else:
             print("该命令不被允许执行。")
 
-command_runner = CommandRunner(settings.COMMAND_CONFIG_FILE)
+command_runner = CommandProvider(settings.COMMAND_CONFIG_FILE)

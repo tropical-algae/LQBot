@@ -79,8 +79,8 @@ class ServiceSetting(BaseSettings):
     NEWS_API: str = ""
     NEWS_SOURCES: dict[str, str] = []  # 信源中文名与路由名的映射
 
-    # 指令配置
-    COMMAND_CONFIG_FILE: str = "configs/other/command.yaml"
+    # 额外配置
+    COMMAND_CONFIG_FILE: str = "configs/providers/command.yaml"
 
     # 黑白名单（白名单非空时视为开启）
     GROUP_INSTRUCT_BLACK: dict[str, list[int]] = {

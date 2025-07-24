@@ -1,5 +1,7 @@
 import asyncio
+from pathlib import Path
 import random
+import uuid
 from ncatbot.core import GroupMessage, BotAPI
 from sqlmodel import Session
 from qq_bot.conn.sql.crud.user_crud import (
@@ -78,6 +80,10 @@ def update_group_user_info(
 async def send_msg_2_group(
     api: BotAPI, group_id: int, text: str, **kwargs
 ) -> GroupMessageRecord | None:
+    # file = Path("cache/tts") / f"voice_{uuid.uuid4().hex}.mp3"
+    # await test_query(file=file, text=text)
+    # result: dict = await api.post_group_file(group_id=group_id, record=str(file))
+    
     result: dict = await api.post_group_msg(group_id=group_id, text=text, **kwargs)
 
     if result.get("status") != "ok" or not result.get("data"):
@@ -118,14 +124,18 @@ async def group_random_chat(
 
             for part in parts:
                 part = part.strip("。.~～")
-                await asyncio.sleep(typing_time_calculate(part, language))
-                bot_reply = await send_msg_2_group(api, message.group_id, part, reply=message.id)
+                # await asyncio.sleep(typing_time_calculate(part, language))
+                # bot_reply = await send_msg_2_group(api, message.group_id, part, reply=message.id)
+                bot_reply = await send_msg_2_group(api, message.group_id, part)
+                
                 if bot_reply:
                     bot_messages.append(bot_reply)
             save_msg_2_sql(messages=bot_messages)
         else:
-            await asyncio.sleep(typing_time_calculate(bot_reply, language))
-            bot_message = await send_msg_2_group(api, message.group_id, bot_reply, reply=message.id)
+            # await asyncio.sleep(typing_time_calculate(bot_reply, language))
+            bot_message = await send_msg_2_group(api, message.group_id, bot_reply)
+            
+            # bot_message = await send_msg_2_group(api, message.group_id, bot_reply, reply=message.id)
             if bot_message is not None:
                 save_msg_2_sql(messages=bot_message)
 
