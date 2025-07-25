@@ -9,6 +9,7 @@ from qq_bot.conn.sql.crud.user_crud import (
     select_user_by_ids,
     update_users,
 )
+from qq_bot.core.llm.voice import voice_query
 from qq_bot.core.robot.base import AgentBase
 from qq_bot.utils.decorator import sql_session
 from qq_bot.utils.models import GroupMessageRecord, QUser
@@ -26,26 +27,6 @@ from qq_bot.core import llm_registrar
 from qq_bot.utils.config import settings
 from qq_bot.utils.logger import logger
 from qq_bot.core.llm.llms.chatter import LLMChatter
-
-
-@sql_session
-def record_messages(
-    messages: list[GroupMessageRecord] | GroupMessageRecord,
-    db: Session | None = None,
-) -> None:
-    try:
-        abs: str = ""
-        if isinstance(messages, list):
-            insert_group_messages(db=db, messages=messages)
-            abs = ", ".join([f"{i.content[:4]}.." for i in messages])
-        elif isinstance(messages, GroupMessageRecord):
-            insert_group_message(db=db, message=messages)
-            abs = f"{messages.content[:5]}.."
-        else:
-            return
-        logger.info(f"聊天记录已存储: {abs}")
-    except Exception as err:
-        logger.error(f"{err}. 聊天记录存储失败: {abs}")
 
 
 @sql_session
@@ -78,13 +59,14 @@ def update_group_member(
 
 
 async def send_message(
-    api: BotAPI, group_id: int, text: str, **kwargs
+    api: BotAPI, group_id: int, text: str, voice: bool = True, **kwargs
 ) -> GroupMessageRecord | None:
-    # file = Path("cache/tts") / f"voice_{uuid.uuid4().hex}.mp3"
-    # await test_query(file=file, text=text)
-    # result: dict = await api.post_group_file(group_id=group_id, record=str(file))
-    
-    result: dict = await api.post_group_msg(group_id=group_id, text=text, **kwargs)
+    if voice:
+        file = Path("cache/tts") / f"voice_{uuid.uuid4().hex}.mp3"
+        await voice_query(file=file, text=text)
+        result: dict = await api.post_group_file(group_id=group_id, record=str(file))
+    else:
+        result = await api.post_group_msg(group_id=group_id, text=text, **kwargs)
 
     if result.get("status") != "ok" or not result.get("data"):
         return None
@@ -94,6 +76,9 @@ async def send_message(
 
     if reply_data.get("status") != "ok" or not reply_data.get("data"):
         return None
+
+    if voice:
+        reply_data["data"]["raw_message"] = text
 
     return await GroupMessageRecord.from_group_message(
         GroupMessage(reply_data["data"]), True
@@ -106,32 +91,30 @@ async def group_chat(
     split: bool = True,
     voice: bool = True,
 ) -> bool:
+    group_id = message.group_id
+    split = False if voice else split
+    
     llm: LLMChatter = llm_registrar.get(settings.CHATTER_LLM_CONFIG_NAME)
-    bot_reply: str | None = await llm.run(message)
-
-    if not bot_reply:
+    response: str | None = await llm.run(message)
+    if not response:
         return False
-
-    if split:
-        bot_messages: list[GroupMessageRecord] = []
-        language = language_classifity(bot_reply)
-        parts: list[str] = auto_split_sentence(bot_reply, language)
-
-        for part in parts:
-            part = part.strip("。.~～")
-            # await asyncio.sleep(typing_time_calculate(part, language))
-            # bot_reply = await send_msg_2_group(api, message.group_id, part, reply=message.id)
-            bot_reply = await send_message(api, message.group_id, part)
-            
-            if bot_reply:
-                bot_messages.append(bot_reply)
-        record_messages(messages=bot_messages)
-    else:
-        # await asyncio.sleep(typing_time_calculate(bot_reply, language))
-        bot_message = await send_message(api, message.group_id, bot_reply)
-        
-        # bot_message = await send_msg_2_group(api, message.group_id, bot_reply, reply=message.id)
-        if bot_message is not None:
-            record_messages(messages=bot_message)
+    
+    messages: list[GroupMessageRecord] = []
+    language = language_classifity(response)
+    responses: list[str] = (
+        [response] if not split else
+        auto_split_sentence(response, language, strip_punct=True)
+    )
+    for text in responses:
+        # 模拟打字停顿
+        if not voice:
+            await asyncio.sleep(typing_time_calculate(text, language))
+        # 发送消息
+        message = await send_message(api, group_id, text, voice=voice)
+        if message:
+            messages.append(message)
+    
+    # 更新memory & 数据库
+    llm.update_memory(messages, from_user=False)
 
     return True

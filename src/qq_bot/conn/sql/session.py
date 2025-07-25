@@ -1,3 +1,5 @@
+from qq_bot.conn.sql.models import *
+
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel, Session, create_engine, select
 from qq_bot.utils.logger import logger

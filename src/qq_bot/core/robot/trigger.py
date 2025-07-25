@@ -92,7 +92,7 @@ async def group_use_tool(agent: AgentBase, message: GroupMessageRecord, **kwargs
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_REPLY}", need_at=True)
 async def group_at_reply(agent: AgentBase, message: GroupMessageRecord, **kwargs) -> bool:
     use_voice: bool = random.random() < settings.VOICE_WILLINGNESS
-    status = await group_chat(api=agent.api, message=message, split=False, voice=use_voice)
+    status = await group_chat(api=agent.api, message=message, split=True, voice=use_voice)
     if status:
         logger.info(f"[{message.id}] AT回复触发")
 
@@ -102,6 +102,6 @@ async def group_at_chat(agent: AgentBase, message: GroupMessageRecord, **kwargs)
     can_chat: bool = random.random() < settings.CHAT_WILLINGNESS
     use_voice: bool = random.random() < settings.VOICE_WILLINGNESS
     if can_chat:
-        status = await group_chat(api=agent.api, message=message, split=False, voice=use_voice)
+        status = await group_chat(api=agent.api, message=message, split=True, voice=use_voice)
         if status:
             logger.info(f"[{message.id}] 随机聊天触发")

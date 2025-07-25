@@ -25,7 +25,7 @@ class LLMRegistrar:
                 api_key=settings.GPT_API_KEY,
                 prompt_path=prompt_path,
             )
-            if self.model_services[tag].is_activate:
+            if self.model_services[tag].active:
                 logger.info(f"已注册模型：{tag}")
             else:
                 logger.warning(f"已注册模型：{tag} [未激活 模型不可用]")

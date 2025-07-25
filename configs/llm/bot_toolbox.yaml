@@ -1,4 +1,4 @@
-activate: true
+active: false
 default_reply: ''
 model: gpt-4o-mini-ca
 version: prompt_v1

@@ -58,6 +58,11 @@ class ServiceSetting(BaseSettings):
     GPT_BASE_URL: str = ""
     GPT_API_KEY: str = ""
     LOCAL_PROMPT_ROOT: str = "./configs/llm"
+    
+    HUOSHAN_VOICE_LLM_APPID: str = ""
+    HUOSHAN_VOICE_LLM_TOKEN: str = ""
+    HUOSHAN_VOICE_LLM_CLUSTER: str = ""
+    
 
     # 嵌入模型配置
     EMBEDDING_BASE_URL: str = ""
@@ -78,7 +83,7 @@ class ServiceSetting(BaseSettings):
     BOT_COMMAND_GROUP_RANDOM_SETU: str = "来点涩图"
 
     # 聊天意愿
-    CHAT_WILLINGNESS: float = 0.03
+    CHAT_WILLINGNESS: float = 0.08
     VOICE_WILLINGNESS: float = 0.3
 
     # 第三方资源收集
