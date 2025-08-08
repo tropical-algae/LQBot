@@ -1,10 +1,10 @@
 import asyncio
-from qq_bot.core.agent.agent_server import update_group_user_info
-from qq_bot.core.agent.base import AgentBase
-from qq_bot.core.tool_manager.tools.base import ToolBase
+from qq_bot.core.robot.service import update_group_member
+from qq_bot.core.robot.base import AgentBase
+from qq_bot.core.components.tools.base import ToolBase
 from qq_bot.utils.decorator import tools_logger
 from qq_bot.utils.models import GroupMessageRecord, QUser
-from qq_bot.utils.logging import logger
+from qq_bot.utils.logger import logger
 
 
 @tools_logger
@@ -50,7 +50,7 @@ class MemberUpdateTool(ToolBase):
                 else:
                     target_users = [QUser.from_dict(u) for u in response["data"]]
 
-            updated_users, inserted_users = update_group_user_info(users=target_users)
+            updated_users, inserted_users = update_group_member(users=target_users)
 
             # 发送提示信息
             text = (

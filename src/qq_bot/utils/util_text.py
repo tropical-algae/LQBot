@@ -1,8 +1,9 @@
 import json
 import random
 import re
+import string
 from typing import Literal
-from qq_bot.utils.logging import logger
+from qq_bot.utils.logger import logger
 
 
 def get_data_from_message(message: list[dict], type: str) -> dict:
@@ -57,30 +58,40 @@ def language_classifity(sentence: str) -> Literal["zh", "en"]:
         return "en"
 
 
-def split_sentence_zh(text: str) -> list[str]:
+def strip_trailing_punct(line: str, lang: str) -> str:
+    line = line.strip()
+    if lang == "zh":
+        return re.sub(r"[。！？~～]+$", "", line)
+    else:  # English
+        return line.rstrip(string.punctuation)
+
+
+def split_sentence_zh(text: str, strip_punct: bool) -> list[str]:
     text = text.strip()
     text = re.sub(r"([。！？~～?.])([^”’])", r"\1\n\2", text)
     text = re.sub(r"([\.。]{2,}|…{2,})([^”’])", r"\1\n\2", text)
     text = re.sub(r"([。！？~～?.][”’])([^，。！？?.])", r"\1\n\2", text)
 
-    return [line.strip() for line in text.split("\n") if line.strip()]
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    return [strip_trailing_punct(line, "zh") if strip_punct else line for line in lines]
 
 
-def split_sentence_en(text: str) -> list[str]:
+def split_sentence_en(text: str, strip_punct: bool) -> list[str]:
     text = text.strip()
     text = re.sub(r"([.!?])(\s+)([A-Z])", r"\1\n\3", text)
     text = text.strip()
-    return [line.strip() for line in text.split("\n") if line.strip()]
+    lines = [line.strip() for line in text.split("\n") if line.strip()]
+    return [strip_trailing_punct(line, "en") if strip_punct else line for line in lines]
 
 
 def auto_split_sentence(
-    text: str, language: Literal["zh", "en", None] = None
+    text: str, language: Literal["zh", "en", None] = None, strip_punct: bool = True
 ) -> list[str]:
     language = language if language else language_classifity(text)
     if language == "zh":
-        return split_sentence_zh(text)
+        return split_sentence_zh(text, strip_punct)
     else:
-        return split_sentence_en(text)
+        return split_sentence_en(text, strip_punct)
 
 
 def typing_time_calculate(text: str, language: Literal["zh", "en", None] = None) -> float:

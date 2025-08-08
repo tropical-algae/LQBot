@@ -4,16 +4,22 @@ import random
 from typing import Generator
 import requests
 
+from qq_bot.base import ComponentBase
 from qq_bot.utils.config import settings
+from qq_bot.utils.decorator import require_active
 
 
-class RandomPicProvider:
+class WallpaperProvider(ComponentBase):
+    __component_name__ = settings.WALLPAPER_COMPONENT_NAME
+    
     def __init__(self, cache_root: str, api_v1: str, api_v2: str):
+        super().__init__(cache_root=cache_root, api_v1=api_v1, api_v2=api_v2)
         self.cache_root = cache_root
         self.api_v1 = api_v1
         self.api_v2 = api_v2
         os.makedirs(cache_root, exist_ok=True)
 
+    @require_active
     def load(self) -> tuple[str | None, str | None]:
         sort = random.choices(["setu", "ws"], weights=[0.6, 0.4], k=1)[0]
         response = requests.post(self.api_v1, params={"sort": sort})
@@ -29,6 +35,7 @@ class RandomPicProvider:
                 return file_path, url
         return None, None
 
+    @require_active
     def load_r18(
         self, num: int = 1
     ) -> Generator[tuple[str | None, str | None], None, None]:
@@ -47,8 +54,8 @@ class RandomPicProvider:
                     yield file_path, url
 
 
-random_pic_provider = RandomPicProvider(
+wallpaper_provider = WallpaperProvider(
     cache_root=settings.RANDOM_PIC_CACHE_ROOT,
-    api_v1=settings.RANDOM_PIC_API_v1,
-    api_v2=settings.RANDOM_PIC_API_v2,
+    api_v1=settings.WALLPAPER_API,
+    api_v2=settings.WALLPAPER_R18_API,
 )

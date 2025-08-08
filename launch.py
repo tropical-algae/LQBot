@@ -1,12 +1,12 @@
-import json
-import ncatbot.utils.literals as literals
+import ncatbot.utils as utils
+utils.PLUGINS_DIR = "src"
 
-literals.PLUGINS_DIR = "src"
+import json
 
 from ncatbot.utils.config import config
 from ncatbot.core import BotAPI, BotClient, GroupMessage, PrivateMessage
 
-from qq_bot.utils.logging import logger
+from qq_bot.utils.logger import logger
 from qq_bot.utils.config import settings
 
 

@@ -14,6 +14,8 @@ from qq_bot.utils.config import settings
 
 
 class EntityRelationVectorStore(VectorStoreBase):
+    __component_name__ = settings.VECTOR_RETRIEVER_COMPONENT_NAME
+    
     def __init__(self, *args, entity_store: str, relation_store: str, **kwargs):
         super().__init__(*args, stores=[entity_store, relation_store], **kwargs)
 

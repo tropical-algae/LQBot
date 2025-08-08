@@ -1,8 +1,8 @@
 import os
 from qq_bot.utils.config import settings
-from qq_bot.utils.logging import logger
-from qq_bot.core.llm_manager.llms.base import OpenAIBase
-import qq_bot.core.llm_manager.llms as bot_llms
+from qq_bot.utils.logger import logger
+from qq_bot.core.llm.base import OpenAIBase
+import qq_bot.core.llm.llms as bot_llms
 from qq_bot.utils.util import import_all_modules_from_package
 
 
@@ -25,7 +25,7 @@ class LLMRegistrar:
                 api_key=settings.GPT_API_KEY,
                 prompt_path=prompt_path,
             )
-            if self.model_services[tag].is_activate:
+            if self.model_services[tag].active:
                 logger.info(f"已注册模型：{tag}")
             else:
                 logger.warning(f"已注册模型：{tag} [未激活 模型不可用]")

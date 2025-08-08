@@ -1,4 +1,4 @@
-from qq_bot.core.agent.base import AgentBase
+from qq_bot.core.robot.base import AgentBase
 from qq_bot.utils.models import GroupMessageRecord
 
 
