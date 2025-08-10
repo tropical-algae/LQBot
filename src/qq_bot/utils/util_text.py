@@ -10,6 +10,12 @@ def get_data_from_message(message: list[dict], type: str) -> dict:
     return next((item["data"] for item in message if item.get("type") == type), {})
 
 
+def text_simplification(text: str, max_len: int = 250) -> str:
+    text = re.sub(r' {2,}', ' ', text)
+    text = text[-max_len:]
+    return text
+
+
 def extract_json_from_markdown(text: str) -> list[dict | list]:
     results = []
     pattern = r"```json\s*([\s\S]*?)\s*```"

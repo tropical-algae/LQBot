@@ -36,14 +36,44 @@ class CommandProvider(ComponentBase):
         return True
 
     @require_active
-    def execute_command(self, command: str):
+    def execute_command(self, command: str) -> str:
+        warning_log = ""
         if self._command_actived(command):
             try:
                 result = subprocess.run(shlex.split(command), capture_output=True, text=True)
-                print(result.stdout)
+                return result.stdout
             except subprocess.CalledProcessError as e:
-                logger.warning(f"命令执行失败: {e.stderr}")
+                warning_log = f"命令执行失败: {e.stderr}"
+                logger.warning(warning_log)
         else:
-            logger.warning("该命令不被允许执行。")
+            warning_log = "该命令不被允许执行。"
+            logger.warning(warning_log)
+        return warning_log
+    
+    # @require_active
+    # async def execute_command(self, command: str) -> str:
+    #     warning_log = ""
+    #     if self._command_actived(command):
+    #         try:
+    #             # 异步创建子进程执行命令
+    #             process = await asyncio.create_subprocess_exec(
+    #                 *shlex.split(command),
+    #                 stdout=asyncio.subprocess.PIPE,
+    #                 stderr=asyncio.subprocess.PIPE
+    #             )
+    #             stdout, stderr = await process.communicate()
+                
+    #             if process.returncode == 0:
+    #                 return stdout.decode()
+    #             else:
+    #                 warning_log = f"命令执行失败: {stderr.decode()}"
+    #                 logger.warning(warning_log)
+    #         except Exception as e:
+    #             warning_log = f"命令执行异常: {str(e)}"
+    #             logger.warning(warning_log)
+    #     else:
+    #         warning_log = "该命令不被允许执行。"
+    #         logger.warning(warning_log)
+    #     return warning_log
 
 command_runner = CommandProvider(settings.COMMAND_CONFIG_FILE)

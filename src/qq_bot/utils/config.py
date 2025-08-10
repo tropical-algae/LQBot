@@ -81,12 +81,14 @@ class ServiceSetting(BaseSettings):
     BOT_COMMAND_GROUP_JM_CHECK: str = "jm"
     BOT_COMMAND_GROUP_RANDOM_PIC: str = "来点二次元"
     BOT_COMMAND_GROUP_RANDOM_SETU: str = "来点涩图"
+    BOT_COMMAND_GROUP_COMMAND: str = "/"
 
     # 聊天意愿
     CHAT_WILLINGNESS: float = 0.08
     VOICE_WILLINGNESS: float = 0.3
 
     # 第三方资源收集
+    TTS_CACHE_ROOT: str = "./cache/tts"
     JM_CACHE_ROOT: str = "./cache/jm"
     JM_OPTION: str = "./configs/jm/option.yml"
     RANDOM_PIC_CACHE_ROOT: str = "./cache/random_pic"

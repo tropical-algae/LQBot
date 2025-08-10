@@ -28,6 +28,8 @@ from qq_bot.utils.config import settings
 from qq_bot.utils.logger import logger
 from qq_bot.core.llm.llms.chatter import LLMChatter
 
+TTS_ROOT = Path(settings.TTS_CACHE_ROOT)
+TTS_ROOT.mkdir(parents=True, exist_ok=True)
 
 @sql_session
 def update_group_member(
@@ -62,8 +64,8 @@ async def send_message(
     api: BotAPI, group_id: int, text: str, voice: bool = True, **kwargs
 ) -> GroupMessageRecord | None:
     if voice:
-        file = Path("cache/tts") / f"voice_{uuid.uuid4().hex}.mp3"
-        await voice_query(file=file, text=text)
+        file = TTS_ROOT / f"voice_{uuid.uuid4().hex}.mp3"
+        await voice_query(file=str(file), text=text)
         result: dict = await api.post_group_file(group_id=group_id, record=str(file))
     else:
         result = await api.post_group_msg(group_id=group_id, text=text, **kwargs)

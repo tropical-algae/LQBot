@@ -8,13 +8,14 @@ from qq_bot.core.robot.base import AgentBase
 from qq_bot.utils.decorator import MessageCommands
 from qq_bot.utils.models import GroupMessageRecord
 from qq_bot.utils.util import blue_image
-from qq_bot.core.robot.service import group_chat
+from qq_bot.core.robot.service import group_chat, send_message
 from qq_bot.core import wallpaper_provider
 from qq_bot.core.components.toolbox import tool_component
 from qq_bot.conn.minio.base import minio
 from qq_bot.utils.config import settings
 from qq_bot.utils.logger import logger
-
+from qq_bot.core.components.command import command_runner
+from qq_bot.utils.util_text import text_simplification
 
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_RANDOM_PIC}")
 async def group_random_picture(
@@ -95,6 +96,7 @@ async def group_at_reply(agent: AgentBase, message: GroupMessageRecord, **kwargs
     status = await group_chat(api=agent.api, message=message, split=True, voice=use_voice)
     if status:
         logger.info(f"[{message.id}] AT回复触发")
+    return status
 
 
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_CHAT}")
@@ -105,3 +107,15 @@ async def group_at_chat(agent: AgentBase, message: GroupMessageRecord, **kwargs)
         status = await group_chat(api=agent.api, message=message, split=True, voice=use_voice)
         if status:
             logger.info(f"[{message.id}] 随机聊天触发")
+    return status
+
+
+@MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_COMMAND}")
+async def group_command(agent: AgentBase, message: GroupMessageRecord, params: str, **kwargs) -> bool:
+    result = command_runner.execute_command(params)
+    result = text_simplification(result, 1000)
+    status = await send_message(api=agent.api, group_id=message.group_id, text=result, voice=False)
+    # status = await group_chat(api=agent.api, message=message, split=False, voice=False)
+    if status:
+        logger.info(f"[{message.id}] 指令触发: {params}")
+    return status
