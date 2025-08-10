@@ -1,9 +1,7 @@
 import asyncio
 
 from sqlmodel import Session
-from qq_bot.core.robot.service import send_message
 from qq_bot.core.robot.base import AgentBase
-from qq_bot.conn.sql.crud.user_crud import select_user_by_name
 from qq_bot.core.components.tools.base import ToolBase
 from qq_bot.utils.decorator import sql_session, tools_logger
 from qq_bot.utils.models import GroupMessageRecord

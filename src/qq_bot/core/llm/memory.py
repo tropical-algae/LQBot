@@ -15,43 +15,62 @@ from qq_bot.utils.logger import logger
 from qq_bot.utils.config import settings
 
 
-
-class Memory(BaseModel):
+class GroupMemory(BaseModel):
     group_id: int
     # 缓存的记忆长度
     memory_size: int
     # 上下文长度
     context_length: int
     # 群组id 对应的历史消息集合cache
+    cache: list[list[GroupMessageRecord]] = []
+    
     usr_cache: list[GroupMessageRecord] = []
     # 消息id 对应的模型回复消息
     llm_cache: OrderedDict[int, list[GroupMessageRecord]] = OrderedDict()
     
-    def get_msgs(self) -> list[ChatMessage]:
+    def insert_msg(self, messages: list[GroupMessageRecord] | GroupMessageRecord) -> None:
+        if not isinstance(messages, list):
+            messages = [messages]
+        
+        temp_cache = []
+        last_sender: str = ""
+        for message in messages:
+            if message.sender.id != last_sender:
+                if temp_cache:
+                    self.cache.append(deepcopy(temp_cache))
+                    temp_cache.clear()
+                last_sender = message.sender.id
+            temp_cache.append(message)
+        
+        if temp_cache:
+            self.cache.append(deepcopy(temp_cache))
+    
+    def get_msgs(self, message_template: str) -> list[ChatMessage]:
         result: list[ChatMessage] = []
-        for u_msg in self.usr_cache[-self.context_length:]:
-            result.append(ChatMessage(content=u_msg.content, role=MessageRole.USER))
-            l_msg: GroupMessageRecord | None = self.llm_cache.get(u_msg.id, None)
-            if l_msg:
-                result.append(ChatMessage(content=l_msg.content, role=MessageRole.ASSISTANT))
-        
+        for msgs in self.cache[-self.context_length:]:
+            for msg in msgs:
+                role = MessageRole.ASSISTANT if msg.from_bot else MessageRole.ASSISTANT
+                text = (
+                    msg.content if msg.from_bot 
+                    else message_template.format(**{
+                        "text": msg.content,
+                        "time": msg.send_time,
+                        "sender": msg.sender.nikename or "None"
+                    })
+                )
+                result.append(ChatMessage(content=text, role=role))
+        result = result[-self.context_length * 3:]
         return result
-
-    def insert_usr_msg(self, message: GroupMessageRecord) -> None:
-        if len(self.usr_cache) >= self.memory_size:
-            self.usr_cache.pop(0)
-        self.usr_cache.append(message)
-        
-    def insert_llm_msg(self, messages: list[GroupMessageRecord]) -> None:
-        if messages:
-            replied_id = messages[0].reply_message_id
-            if len(self.llm_cache) >= self.memory_size:
-                self.llm_cache.popitem(last=False)
-            self.llm_cache[replied_id] = messages
 
 class MemoryManager:
 
-    def __init__(self, memory_size: int, context_length: int, sys_prompt: str | ChatMessage):
+    def __init__(
+        self, 
+        memory_size: int, 
+        context_length: int, 
+        sys_prompt: str | ChatMessage,
+        message_template: str,  # 用户message模板
+    ):
         assert memory_size >= 0
         assert context_length > 0
         
@@ -59,14 +78,15 @@ class MemoryManager:
             sys_prompt if isinstance(sys_prompt, ChatMessage) 
             else ChatMessage(content=sys_prompt, role=MessageRole.SYSTEM)
         )
+        self.message_template = message_template
         self.memory_size = memory_size
         self.context_length = context_length
-        self._memories: dict[int, Memory] = {}
+        self._memories: dict[int, GroupMemory] = {}
 
-    def _load_or_create_memory(self, group_id: int) -> Memory:
+    def _load_or_create_memory(self, group_id: int) -> GroupMemory:
         return self._memories.setdefault(
             group_id,
-            Memory(
+            GroupMemory(
                 group_id=group_id,
                 memory_size=self.memory_size,
                 context_length=self.context_length,
@@ -75,24 +95,19 @@ class MemoryManager:
 
     def load(self, group_id: int) -> list[ChatMessage]:
         memory = self._load_or_create_memory(group_id)
-        messages: list[ChatMessage] = memory.get_msgs()
+        messages: list[ChatMessage] = memory.get_msgs(self.message_template)
         messages.insert(0, self.sys_prompt)
         return messages
 
     def upsert(
         self,
         messages: GroupMessageRecord | list[GroupMessageRecord],
-        from_user: bool,
     ) -> None:
         if not messages:
             return
         
         group_id = messages.group_id if isinstance(messages, GroupMessageRecord) else messages[0].group_id
         memory = self._load_or_create_memory(group_id)
-        
-        if from_user:
-            memory.insert_usr_msg(messages)
-        else:
-            memory.insert_llm_msg(messages)
+        memory.insert_msg(messages)
 
         record_messages(messages=messages)

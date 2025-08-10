@@ -80,7 +80,12 @@ async def send_message(
         return None
 
     if voice:
-        reply_data["data"]["raw_message"] = text
+        reply_data["data"]["message"].append(
+            {
+                "type": "text",
+                "data": {"text": text}
+            }
+        )
 
     return await GroupMessageRecord.from_group_message(
         GroupMessage(reply_data["data"]), True
@@ -117,6 +122,6 @@ async def group_chat(
             messages.append(message)
     
     # 更新memory & 数据库
-    llm.update_memory(messages, from_user=False)
+    llm.update_memory(messages)
 
     return True

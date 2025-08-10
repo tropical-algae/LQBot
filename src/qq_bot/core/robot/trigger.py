@@ -107,7 +107,8 @@ async def group_at_chat(agent: AgentBase, message: GroupMessageRecord, **kwargs)
         status = await group_chat(api=agent.api, message=message, split=True, voice=use_voice)
         if status:
             logger.info(f"[{message.id}] 随机聊天触发")
-    return status
+        return status
+    return False
 
 
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_COMMAND}")

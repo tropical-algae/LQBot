@@ -62,7 +62,7 @@ class OpenAIBase:
         self.default_model = self.configs.get("model", "gpt-3.5-turbo-ca")
         self.active: bool = self.configs.get("active", False)
         self.default_reply: str = self.configs.get("default_reply", "None")
-        self.prompt: str = self.configs.get("prompts", {}).get(prompt_version, "")
+        self.message_template: str = self.configs.get("message_template", "{text}")
         self.system_prompt = ChatMessage(
             content=(
                 self.configs.get("system_prompt", {}).get(
@@ -71,11 +71,6 @@ class OpenAIBase:
             ),
             role="system",
         )
-
-    def _set_prompt(self, prompt: str | None = None, **kwargs) -> str:
-        template = prompt if prompt else self.prompt
-        template = template.format(**kwargs)
-        return template
 
     @function_retry
     async def _async_inference(self, messages: list[ChatMessage], **kwargs) -> CompletionResponse | ChatResponse | None:

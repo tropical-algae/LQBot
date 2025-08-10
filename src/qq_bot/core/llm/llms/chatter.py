@@ -36,21 +36,21 @@ class LLMChatter(OpenAIBase):
         self.memory = MemoryManager(
             memory_size=self.configs.get("memory_size", 100),
             context_length=self.configs.get("context_length", 5),
-            sys_prompt=self.system_prompt
+            sys_prompt=self.system_prompt,
+            message_template=self.message_template
         )
 
     def update_memory(
         self, 
         messages: GroupMessageRecord | list[GroupMessageRecord],
-        from_user: bool
     ):
-        self.memory.upsert(messages=messages, from_user=from_user)
+        self.memory.upsert(messages=messages)
 
     async def run(self, message: GroupMessageRecord, **kwargs) -> str | None:
         if not self.active:
             return self.default_reply
         
-        self.update_memory(messages=message, from_user=True)
+        self.update_memory(messages=message)
         memory: list = self.memory.load(message.group_id)
         llm_message = await self._async_inference(messages=memory, **kwargs)
 
