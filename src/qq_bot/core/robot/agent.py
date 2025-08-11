@@ -1,7 +1,8 @@
+import asyncio
 from ncatbot.core import GroupMessage, PrivateMessage
 from qq_bot.core.robot.base import AgentBase
 from ncatbot.plugin import CompatibleEnrollment
-from qq_bot.core.components.toolbox import ToolRegistrar
+from qq_bot.core.robot.service import init_agent
 from qq_bot.core.robot.trigger import (
     group_at_chat,
     group_at_reply,
@@ -9,7 +10,7 @@ from qq_bot.core.robot.trigger import (
     group_random_setu,
     group_use_tool,
 )
-from qq_bot.utils.models import GroupMessageRecord
+from qq_bot.utils.models import GroupMessageData, QUserData
 from qq_bot.utils.logger import logger
 from qq_bot.utils.config import settings
 
@@ -34,6 +35,9 @@ class LQBot(AgentBase):
         ]
         self.register_handlers()
 
+    async def on_load(self):
+        await init_agent(self.api)
+
     def register_handlers(self):
         @self.bot.group_event()
         async def on_group_message(msg: GroupMessage):
@@ -41,7 +45,7 @@ class LQBot(AgentBase):
                 logger.warning(f"非文本消息，跳过")
                 return
 
-            user_msg = await GroupMessageRecord.from_group_message(msg, False)
+            user_msg = await GroupMessageData.from_group_message(data=msg, from_bot=False, api=self.api)
             for handler in self.group_command:
                 if await handler(agent=self, message=user_msg, origin_msg=msg):
                     break

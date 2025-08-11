@@ -1,25 +1,17 @@
+from collections import defaultdict
 import uuid
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from typing import Literal
-from qq_bot.utils.models import GroupMessageRecord
-from qq_bot.conn.sql.models import GroupMessageV1
-from qq_bot.utils.util_text import trans_str
+from sqlalchemy.orm import aliased
+from qq_bot.utils.models import GroupMessageData
+from qq_bot.conn.sql.models import GroupMessageModel
 
 
 def insert_group_message(
     db: Session,
-    message: GroupMessageRecord,
+    message: GroupMessageData,
 ) -> None:
-    new_msg = GroupMessageV1(
-        id=message.str_id(),
-        group_id=message.str_group_id(),
-        sender_id=message.str_sender_id(),
-        reply_message_id=message.str_reply_message_id(),
-        at_user_id=message.str_at_user_id(),
-        message=message.content,
-        from_bot=1 if message.from_bot else 0,
-        create_time=message.get_datetime(),
-    )
+    new_msg = message.to_group_message_model()
     db.add(new_msg)
     db.commit()
     db.refresh(new_msg)
@@ -27,22 +19,41 @@ def insert_group_message(
 
 def insert_group_messages(
     db: Session,
-    messages: list[GroupMessageRecord],
+    messages: list[GroupMessageData],
 ) -> None:
     db.bulk_insert_mappings(
-        GroupMessageV1,
+        GroupMessageModel,
         [
-            {
-                "id": message.str_id(),
-                "group_id": message.str_group_id(),
-                "sender_id": message.str_sender_id(),
-                "reply_message_id": message.str_reply_message_id(),
-                "at_user_id": message.str_at_user_id(),
-                "message": message.content,
-                "from_bot": 1 if message.from_bot else 0,
-                "create_time": message.get_datetime(),
-            }
+            message.to_group_message_model().model_dump()
             for message in messages
         ],
     )
     db.commit()
+
+
+def select_current_group_messages(db: Session, count: int = 10) -> dict[str, list[GroupMessageModel]]:
+    row_number = func.row_number().over(
+        partition_by=GroupMessageModel.group_id,
+        order_by=GroupMessageModel.create_time.desc()
+    ).label("row_number")
+
+    subq = (
+        select(GroupMessageModel, row_number)
+        .subquery()
+    )
+
+    gm_alias = aliased(GroupMessageModel, subq)
+
+    stmt = (
+        select(gm_alias)
+        .where(subq.c.row_number <= count)
+        .order_by(gm_alias.group_id, gm_alias.create_time.desc())
+    )
+    query_set = db.exec(stmt).all()
+    result: dict[str, list[GroupMessageModel]] = defaultdict(list)
+    
+    # 反转顺序，按时间升序（最近的在列表最后）
+    for qs in query_set:
+        result[qs.group_id].insert(0, qs)
+
+    return result

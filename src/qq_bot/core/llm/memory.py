@@ -1,16 +1,11 @@
-from typing import Any
-import uuid
 from copy import deepcopy
 
 from pydantic import BaseModel
-from collections import OrderedDict, defaultdict
 
 from llama_index.core.llms import ChatMessage, MessageRole
 
-from qq_bot.conn.sql.crud.group_message_crud import insert_group_message, insert_group_messages
-from qq_bot.conn.sql.service import record_messages
-from qq_bot.utils.decorator import sql_session
-from qq_bot.utils.models import GroupMessageRecord
+from qq_bot.conn.sql.service import load_messages, record_messages
+from qq_bot.utils.models import GroupMessageData
 from qq_bot.utils.logger import logger
 from qq_bot.utils.config import settings
 
@@ -22,13 +17,9 @@ class GroupMemory(BaseModel):
     # 上下文长度
     context_length: int
     # 群组id 对应的历史消息集合cache
-    cache: list[list[GroupMessageRecord]] = []
+    cache: list[list[GroupMessageData]] = []
     
-    usr_cache: list[GroupMessageRecord] = []
-    # 消息id 对应的模型回复消息
-    llm_cache: OrderedDict[int, list[GroupMessageRecord]] = OrderedDict()
-    
-    def insert_msg(self, messages: list[GroupMessageRecord] | GroupMessageRecord) -> None:
+    def insert_msg(self, messages: list[GroupMessageData] | GroupMessageData) -> None:
         if not isinstance(messages, list):
             messages = [messages]
         
@@ -54,8 +45,8 @@ class GroupMemory(BaseModel):
                     msg.content if msg.from_bot 
                     else message_template.format(**{
                         "text": msg.content,
-                        "time": msg.send_time,
-                        "sender": msg.sender.nikename or "None"
+                        "time": msg.get_time(),
+                        "sender": msg.sender.nickname or "None"
                     })
                 )
                 result.append(ChatMessage(content=text, role=role))
@@ -93,6 +84,14 @@ class MemoryManager:
             )
         )
 
+    def init_memories(self):
+        self._memories.clear()
+        group_messages: dict[str, list[GroupMessageData]] = load_messages(count=self.memory_size)
+        for group_id, messages in group_messages.items():
+            memory = self._load_or_create_memory(int(group_id))
+            memory.insert_msg(messages)
+        logger.info(f"Init memory, load messages from sql -> {self._memories}")
+
     def load(self, group_id: int) -> list[ChatMessage]:
         memory = self._load_or_create_memory(group_id)
         messages: list[ChatMessage] = memory.get_msgs(self.message_template)
@@ -101,12 +100,12 @@ class MemoryManager:
 
     def upsert(
         self,
-        messages: GroupMessageRecord | list[GroupMessageRecord],
+        messages: GroupMessageData | list[GroupMessageData],
     ) -> None:
         if not messages:
             return
         
-        group_id = messages.group_id if isinstance(messages, GroupMessageRecord) else messages[0].group_id
+        group_id = messages.group_id if isinstance(messages, GroupMessageData) else messages[0].group_id
         memory = self._load_or_create_memory(group_id)
         memory.insert_msg(messages)
 

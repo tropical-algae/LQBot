@@ -6,8 +6,8 @@ import asyncio
 from typing import Any, Optional
 from itertools import chain
 from qq_bot.core.llm.memory import MemoryManager
-from qq_bot.utils.models import GroupMessageRecord
-from qq_bot.utils.util_text import parse_text
+from qq_bot.utils.models import GroupMessageData
+from qq_bot.utils.util import parse_text
 from qq_bot.core.llm.base import OpenAIBase
 
 from qq_bot.utils.config import settings
@@ -42,11 +42,11 @@ class LLMChatter(OpenAIBase):
 
     def update_memory(
         self, 
-        messages: GroupMessageRecord | list[GroupMessageRecord],
+        messages: GroupMessageData | list[GroupMessageData],
     ):
         self.memory.upsert(messages=messages)
 
-    async def run(self, message: GroupMessageRecord, **kwargs) -> str | None:
+    async def run(self, message: GroupMessageData, **kwargs) -> str | None:
         if not self.active:
             return self.default_reply
         

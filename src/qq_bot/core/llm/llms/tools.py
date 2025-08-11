@@ -6,7 +6,7 @@ from typing import Any, Optional
 from itertools import chain
 
 from openai.types.chat import ChatCompletionMessageToolCall
-from qq_bot.utils.models import GroupMessageRecord
+from qq_bot.utils.models import GroupMessageData
 from qq_bot.core.llm.base import OpenAIBase
 from llama_index.core.llms import ChatMessage, MessageRole
 
@@ -36,15 +36,15 @@ class LLMToolbox(OpenAIBase):
         )
 
     async def run(
-        self, message: GroupMessageRecord, **kwargs
+        self, message: GroupMessageData, **kwargs
     ) -> list[ChatCompletionMessageToolCall] | None:
         if not self.active:
             return None
         
         content = [
-            ChatMessage(content=f"消息发送者：{message.sender.nikename}\n当前时间：{message.send_time}\n消息：{message.content}", role=MessageRole.USER)
+            ChatMessage(content=f"消息发送者：{message.sender.nickname}\n当前时间：{message.get_time()}\n消息：{message.content}", role=MessageRole.USER)
         ]
-        # messages = [f"[{m.sender.nikename or 'QQ用户'}][{m.send_time}]: '{m.content}'" for m in message]
+        # messages = [f"[{m.sender.nickname or 'QQ用户'}][{m.send_time}]: '{m.content}'" for m in message]
         response = await self._async_inference(
             messages=content, tool_choice="auto", **kwargs
         )

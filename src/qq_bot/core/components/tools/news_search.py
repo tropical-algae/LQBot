@@ -4,7 +4,7 @@ from datetime import datetime
 from qq_bot.core.robot.base import AgentBase
 from qq_bot.core.components.tools.base import ToolBase
 from qq_bot.utils.decorator import tools_logger
-from qq_bot.utils.models import GroupMessageRecord, QUser
+from qq_bot.utils.models import GroupMessageData, QUserData
 from qq_bot.core import news_provider
 from qq_bot.utils.logger import logger
 from qq_bot.utils.config import settings
@@ -41,7 +41,7 @@ class DataUpdateTool(ToolBase):
 
     @staticmethod
     def function(
-        agent: AgentBase, user_msg: GroupMessageRecord, source_name: str, news_num: int
+        agent: AgentBase, user_msg: GroupMessageData, source_name: str, news_num: int
     ) -> bool:
         async def collect_and_push_news():
             data = news_provider.get_news(source_name=source_name, max_len=news_num)

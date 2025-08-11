@@ -6,7 +6,7 @@ from llama_index.core.vector_stores.types import MetadataFilters
 
 from qq_bot.utils.models import (
     EntityObject,
-    GroupMessageRecord,
+    GroupMessageData,
     RelationTriplet,
 )
 from qq_bot.conn.vector.base import VectorStoreBase

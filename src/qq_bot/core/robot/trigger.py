@@ -6,7 +6,7 @@ from PIL import Image
 
 from qq_bot.core.robot.base import AgentBase
 from qq_bot.utils.decorator import MessageCommands
-from qq_bot.utils.models import GroupMessageRecord
+from qq_bot.utils.models import GroupMessageData
 from qq_bot.utils.util import blue_image
 from qq_bot.core.robot.service import group_chat, send_message
 from qq_bot.core import wallpaper_provider
@@ -15,11 +15,11 @@ from qq_bot.conn.minio.base import minio
 from qq_bot.utils.config import settings
 from qq_bot.utils.logger import logger
 from qq_bot.core.components.command import command_runner
-from qq_bot.utils.util_text import text_simplification
+from qq_bot.utils.util import text_simplification
 
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_RANDOM_PIC}")
 async def group_random_picture(
-    agent: AgentBase, message: GroupMessageRecord, **kwargs
+    agent: AgentBase, message: GroupMessageData, **kwargs
 ) -> bool:
     logger.info(f"[{message.id}] 随机图片命令触发")
 
@@ -40,7 +40,7 @@ async def group_random_picture(
 
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_RANDOM_SETU}")
 async def group_random_setu(
-    agent: AgentBase, message: GroupMessageRecord, **kwargs
+    agent: AgentBase, message: GroupMessageData, **kwargs
 ) -> bool:
     logger.info(f"[{message.id}] 随机setu命令触发")
 
@@ -82,7 +82,7 @@ async def group_random_setu(
 
 
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_TOOL}", need_at=True)
-async def group_use_tool(agent: AgentBase, message: GroupMessageRecord, **kwargs) -> bool:
+async def group_use_tool(agent: AgentBase, message: GroupMessageData, **kwargs) -> bool:
     status = await tool_component.run(agent=agent, message=message)
     if status:
         logger.info(f"[{message.id}] 工具调用触发")
@@ -91,7 +91,7 @@ async def group_use_tool(agent: AgentBase, message: GroupMessageRecord, **kwargs
 
 
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_REPLY}", need_at=True)
-async def group_at_reply(agent: AgentBase, message: GroupMessageRecord, **kwargs) -> bool:
+async def group_at_reply(agent: AgentBase, message: GroupMessageData, **kwargs) -> bool:
     use_voice: bool = random.random() < settings.VOICE_WILLINGNESS
     status = await group_chat(api=agent.api, message=message, split=True, voice=use_voice)
     if status:
@@ -100,7 +100,7 @@ async def group_at_reply(agent: AgentBase, message: GroupMessageRecord, **kwargs
 
 
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_CHAT}")
-async def group_at_chat(agent: AgentBase, message: GroupMessageRecord, **kwargs) -> bool:
+async def group_at_chat(agent: AgentBase, message: GroupMessageData, **kwargs) -> bool:
     can_chat: bool = random.random() < settings.CHAT_WILLINGNESS
     use_voice: bool = random.random() < settings.VOICE_WILLINGNESS
     if can_chat:
@@ -112,7 +112,7 @@ async def group_at_chat(agent: AgentBase, message: GroupMessageRecord, **kwargs)
 
 
 @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_COMMAND}")
-async def group_command(agent: AgentBase, message: GroupMessageRecord, params: str, **kwargs) -> bool:
+async def group_command(agent: AgentBase, message: GroupMessageData, params: str, **kwargs) -> bool:
     result = command_runner.execute_command(params)
     result = text_simplification(result, 1000)
     status = await send_message(api=agent.api, group_id=message.group_id, text=result, voice=False)

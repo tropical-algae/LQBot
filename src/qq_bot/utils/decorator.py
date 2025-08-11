@@ -7,7 +7,7 @@ from qq_bot.conn.sql.session import LocalSession
 
 from qq_bot.utils.logger import logger
 from qq_bot.utils.config import settings
-from qq_bot.utils.util_text import get_data_from_message
+from qq_bot.utils.util import get_data_from_message
 
 
 PRINTABLE_TYPES = (int, float, str, bool, list, dict, tuple, type(None))

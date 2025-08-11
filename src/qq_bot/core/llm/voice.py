@@ -1,12 +1,4 @@
-#coding=utf-8
 
-'''
-requires Python 3.6 or later
-
-pip install asyncio
-pip install websockets
-
-'''
 
 import asyncio
 import websockets
@@ -14,6 +6,7 @@ import uuid
 import json
 import gzip
 import copy
+from qq_bot.utils.logger import logger
 from qq_bot.utils.config import settings
 
 MESSAGE_TYPES = {11: "audio-only server response", 12: "frontend server response", 15: "error message from server"}
@@ -73,9 +66,9 @@ async def test_submit():
     full_client_request = bytearray(default_header)
     full_client_request.extend((len(payload_bytes)).to_bytes(4, 'big'))  # payload size(4 bytes)
     full_client_request.extend(payload_bytes)  # payload
-    print("\n------------------------ test 'submit' -------------------------")
-    print("request json: ", submit_request_json)
-    print("\nrequest bytes: ", full_client_request)
+    logger.info("\n------------------------ test 'submit' -------------------------")
+    logger.info("request json: ", submit_request_json)
+    logger.info("\nrequest bytes: ", full_client_request)
     file_to_save = open("test_submit.mp3", "wb")
     header = {"Authorization": f"Bearer; {token}"}
     async with websockets.connect(api_url, extra_headers=header, ping_interval=None) as ws:
@@ -86,7 +79,7 @@ async def test_submit():
             if done:
                 file_to_save.close()
                 break
-        print("\nclosing the connection...")
+        logger.info("\nclosing the connection...")
 
 
 async def voice_query(text: str, file: str = "test_query.mp3"):
@@ -101,7 +94,7 @@ async def voice_query(text: str, file: str = "test_query.mp3"):
     full_client_request = bytearray(default_header)
     full_client_request.extend((len(payload_bytes)).to_bytes(4, 'big'))  # payload size(4 bytes)
     full_client_request.extend(payload_bytes)  # payload
-    print("\n------------------------ test 'query' -------------------------")
+    logger.info("------------------------ test 'query' -------------------------")
     file_to_save = open(file, "wb")
     header = {"Authorization": f"Bearer; {token}"}
     async with websockets.connect(api_url, extra_headers=header, ping_interval=None) as ws:
@@ -112,8 +105,8 @@ async def voice_query(text: str, file: str = "test_query.mp3"):
 
 
 def parse_response(res, file):
-    print("--------------------------- response ---------------------------")
-    # print(f"response raw bytes: {res}")
+    logger.info("--------------------------- response ---------------------------")
+    # logger.info(f"response raw bytes: {res}")
     protocol_version = res[0] >> 4
     header_size = res[0] & 0x0f
     message_type = res[1] >> 4
@@ -123,25 +116,25 @@ def parse_response(res, file):
     reserved = res[3]
     header_extensions = res[4:header_size*4]
     payload = res[header_size*4:]
-    print(f"            Protocol version: {protocol_version:#x} - version {protocol_version}")
-    print(f"                 Header size: {header_size:#x} - {header_size * 4} bytes ")
-    print(f"                Message type: {message_type:#x} - {MESSAGE_TYPES[message_type]}")
-    print(f" Message type specific flags: {message_type_specific_flags:#x} - {MESSAGE_TYPE_SPECIFIC_FLAGS[message_type_specific_flags]}")
-    print(f"Message serialization method: {serialization_method:#x} - {MESSAGE_SERIALIZATION_METHODS[serialization_method]}")
-    print(f"         Message compression: {message_compression:#x} - {MESSAGE_COMPRESSIONS[message_compression]}")
-    print(f"                    Reserved: {reserved:#04x}")
+    logger.info(f"            Protocol version: {protocol_version:#x} - version {protocol_version}")
+    logger.info(f"                 Header size: {header_size:#x} - {header_size * 4} bytes ")
+    logger.info(f"                Message type: {message_type:#x} - {MESSAGE_TYPES[message_type]}")
+    logger.info(f" Message type specific flags: {message_type_specific_flags:#x} - {MESSAGE_TYPE_SPECIFIC_FLAGS[message_type_specific_flags]}")
+    logger.info(f"Message serialization method: {serialization_method:#x} - {MESSAGE_SERIALIZATION_METHODS[serialization_method]}")
+    logger.info(f"         Message compression: {message_compression:#x} - {MESSAGE_COMPRESSIONS[message_compression]}")
+    logger.info(f"                    Reserved: {reserved:#04x}")
     if header_size != 1:
-        print(f"           Header extensions: {header_extensions}")
+        logger.info(f"           Header extensions: {header_extensions}")
     if message_type == 0xb:  # audio-only server response
         if message_type_specific_flags == 0:  # no sequence number as ACK
-            print("                Payload size: 0")
+            logger.info("                Payload size: 0")
             return False
         else:
             sequence_number = int.from_bytes(payload[:4], "big", signed=True)
             payload_size = int.from_bytes(payload[4:8], "big", signed=False)
             payload = payload[8:]
-            print(f"             Sequence number: {sequence_number}")
-            print(f"                Payload size: {payload_size} bytes")
+            logger.info(f"             Sequence number: {sequence_number}")
+            logger.info(f"                Payload size: {payload_size} bytes")
         file.write(payload)
         if sequence_number < 0:
             return True
@@ -154,18 +147,18 @@ def parse_response(res, file):
         if message_compression == 1:
             error_msg = gzip.decompress(error_msg)
         error_msg = str(error_msg, "utf-8")
-        print(f"          Error message code: {code}")
-        print(f"          Error message size: {msg_size} bytes")
-        print(f"               Error message: {error_msg}")
+        logger.info(f"          Error message code: {code}")
+        logger.info(f"          Error message size: {msg_size} bytes")
+        logger.info(f"               Error message: {error_msg}")
         return True
     elif message_type == 0xc:
         msg_size = int.from_bytes(payload[:4], "big", signed=False)
         payload = payload[4:]
         if message_compression == 1:
             payload = gzip.decompress(payload)
-        print(f"            Frontend message: {payload}")
+        logger.info(f"            Frontend message: {payload}")
     else:
-        print("undefined message type!")
+        logger.info("undefined message type!")
         return True
 
 

@@ -4,8 +4,7 @@ from sqlmodel import Session
 from qq_bot.core.robot.base import AgentBase
 from qq_bot.core.components.tools.base import ToolBase
 from qq_bot.utils.decorator import sql_session, tools_logger
-from qq_bot.utils.models import GroupMessageRecord
-from qq_bot.utils.util_text import trans_int
+from qq_bot.utils.models import GroupMessageData
 from qq_bot.utils.logger import logger
 
 
@@ -42,7 +41,7 @@ class ReminderScheduleTool(ToolBase):
     @staticmethod
     def function(
         agent: AgentBase,
-        user_msg: GroupMessageRecord,
+        user_msg: GroupMessageData,
         user: str,
         time: str,
         message: str,

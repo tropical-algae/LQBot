@@ -3,24 +3,14 @@ from pathlib import Path
 import random
 import uuid
 from ncatbot.core import GroupMessage, BotAPI
-from sqlmodel import Session
-from qq_bot.conn.sql.crud.user_crud import (
-    insert_users,
-    select_user_by_ids,
-    update_users,
-)
+
+from qq_bot.conn.sql.service import update_group_member
 from qq_bot.core.llm.voice import voice_query
-from qq_bot.core.robot.base import AgentBase
-from qq_bot.utils.decorator import sql_session
-from qq_bot.utils.models import GroupMessageRecord, QUser
-from qq_bot.utils.util_text import (
+from qq_bot.utils.models import GroupMessageData, QUserData
+from qq_bot.utils.util import (
     auto_split_sentence,
     language_classifity,
     typing_time_calculate,
-)
-from qq_bot.conn.sql.crud.group_message_crud import (
-    insert_group_message,
-    insert_group_messages,
 )
 
 from qq_bot.core import llm_registrar
@@ -31,38 +21,25 @@ from qq_bot.core.llm.llms.chatter import LLMChatter
 TTS_ROOT = Path(settings.TTS_CACHE_ROOT)
 TTS_ROOT.mkdir(parents=True, exist_ok=True)
 
-@sql_session
-def update_group_member(
-    users: list[QUser], db: Session | None = None
-) -> tuple[list, list]:
-    updated_users: list[str] = []
-    inserted_users: list[str] = []
 
-    try:
-        # 更新已有数据
-        existed_users = select_user_by_ids(db=db, ids=[u.id for u in users])
-        update_users(db=db, users=existed_users, updated_users=users)
-        updated_users = [u.nikename for u in existed_users]
-        logger.info(f"更新群组用户[{len(existed_users)}]条: {updated_users}")
-    except Exception as err:
-        logger.error(f"更新群组用户时发生错误: {err}")
-
-    try:
-        # 插入新数据
-        existed_users_id = {int(u.id) for u in existed_users}  # 使用 set 来加速查找
-        new_users: list[QUser] = [u for u in users if int(u.id) not in existed_users_id]
-        insert_users(db=db, users=new_users)
-        inserted_users = [u.nikename for u in new_users]
-        logger.info(f"新增群组用户[{len(new_users)}条]: {inserted_users}")
-    except Exception as err:
-        logger.error(f"新增群组用户时发生错误: {err}")
-
-    return updated_users, inserted_users
+async def init_agent(
+    api: BotAPI
+) -> None:
+    groups: dict = await api.get_group_list()
+    if groups.get("status") == "ok":
+        group_ids: list[int] = [g["group_id"] for g in groups["data"]]
+        
+        for group_id in group_ids:
+            qusers: list[QUserData] = await QUserData.from_group(api=api, group_id=group_id)
+            update_group_member(qusers=qusers)
+    
+    llm: LLMChatter = llm_registrar.get(settings.CHATTER_LLM_CONFIG_NAME)
+    llm.memory.init_memories()
 
 
 async def send_message(
     api: BotAPI, group_id: int, text: str, voice: bool = True, **kwargs
-) -> GroupMessageRecord | None:
+) -> GroupMessageData | None:
     if voice:
         file = TTS_ROOT / f"voice_{uuid.uuid4().hex}.mp3"
         await voice_query(file=str(file), text=text)
@@ -87,14 +64,14 @@ async def send_message(
             }
         )
 
-    return await GroupMessageRecord.from_group_message(
-        GroupMessage(reply_data["data"]), True
+    return await GroupMessageData.from_group_message(
+        data=GroupMessage(reply_data["data"]), from_bot=True, api=api
     )
 
 
 async def group_chat(
     api: BotAPI,
-    message: GroupMessageRecord,
+    message: GroupMessageData,
     split: bool = True,
     voice: bool = True,
 ) -> bool:
@@ -106,7 +83,7 @@ async def group_chat(
     if not response:
         return False
     
-    messages: list[GroupMessageRecord] = []
+    messages: list[GroupMessageData] = []
     language = language_classifity(response)
     responses: list[str] = (
         [response] if not split else
