@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 import random
 from typing import Generator
 import requests
@@ -12,12 +13,12 @@ from qq_bot.utils.decorator import require_active
 class WallpaperProvider(ComponentBase):
     __component_name__ = settings.WALLPAPER_COMPONENT_NAME
     
-    def __init__(self, cache_root: str, api_v1: str, api_v2: str):
+    def __init__(self, cache_root: str | Path, api_v1: str, api_v2: str):
         super().__init__(cache_root=cache_root, api_v1=api_v1, api_v2=api_v2)
-        self.cache_root = cache_root
+        self.cache_root: Path = Path(cache_root)
         self.api_v1 = api_v1
         self.api_v2 = api_v2
-        os.makedirs(cache_root, exist_ok=True)
+        self.cache_root.mkdir(parents=True, exist_ok=True)
 
     @require_active
     def load(self) -> tuple[str | None, str | None]:
@@ -29,10 +30,10 @@ class WallpaperProvider(ComponentBase):
 
             # 确保请求成功
             if pic_response.status_code == 200:
-                file_path = os.path.join(self.cache_root, url.split("/")[-1])
+                file_path = self.cache_root / url.split("/")[-1]
                 with open(file_path, "wb") as f:
                     f.write(pic_response.content)
-                return file_path, url
+                return str(file_path), url
         return None, None
 
     @require_active
@@ -48,14 +49,14 @@ class WallpaperProvider(ComponentBase):
 
                 # 确保请求成功
                 if pic_response.status_code == 200:
-                    file_path = os.path.join(self.cache_root, url.split("/")[-1])
+                    file_path = self.cache_root / url.split("/")[-1]
                     with open(file_path, "wb") as f:
                         f.write(pic_response.content)
-                    yield file_path, url
+                    yield str(file_path), url
 
 
 wallpaper_provider = WallpaperProvider(
-    cache_root=settings.RANDOM_PIC_CACHE_ROOT,
+    cache_root=Path(settings.CACHE_ROOT) / "wallpaper",
     api_v1=settings.WALLPAPER_API,
     api_v2=settings.WALLPAPER_R18_API,
 )

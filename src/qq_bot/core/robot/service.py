@@ -18,7 +18,7 @@ from qq_bot.utils.config import settings
 from qq_bot.utils.logger import logger
 from qq_bot.core.llm.llms.chatter import LLMChatter
 
-TTS_ROOT = Path(settings.TTS_CACHE_ROOT)
+TTS_ROOT = Path(settings.CACHE_ROOT) / "tts"
 TTS_ROOT.mkdir(parents=True, exist_ok=True)
 
 

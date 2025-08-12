@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 import ast
 import asyncio
+from pathlib import Path
 from typing import Any, Optional
 from itertools import chain
 from qq_bot.core.llm.memory import MemoryManager
@@ -20,7 +21,7 @@ class LLMChatter(OpenAIBase):
         self,
         base_url: str,
         api_key: str,
-        prompt_path: str,
+        prompt_path: str | Path,
         max_retries: int = 3,
         retry: int = 3,
         **kwargs,

@@ -7,16 +7,20 @@ import yaml
 class SysSetting(BaseSettings):
     # SysSetting 配置不可在yaml配置中修改
     PROJECT_NAME: str = "LQBot"
+    
+    CACHE_ROOT: str = "./cache"
+    CONFIG_ROOT: str = "./config"
+    LOG_ROOT: str = "./log"
 
-    JM_CACHE_ROOT: str = "./cache/jm"
-    TTS_CACHE_ROOT: str = "./cache/tts"
-    RANDOM_PIC_CACHE_ROOT: str = "./cache/random_pic"
+    # JM_CACHE_ROOT: str = str(Path(CACHE_ROOT) / "jm")
+    # TTS_CACHE_ROOT: str = str(Path(CACHE_ROOT) / "tts")
+    # RANDOM_PIC_CACHE_ROOT: str = str(Path(CACHE_ROOT) / "wallpaper")
     
     # 额外配置
-    LOCAL_PROMPT_ROOT: str = "./configs/prompts"
-    EXTRA_CONFIG_FILE: str = "./configs/ex_config.yaml"
-    JM_OPTION_CONFIG_FILE: str = "./configs/jm/option.yml"
-    COMMAND_CONFIG_FILE: str = "./configs/components/command.yaml"
+    # LOCAL_PROMPT_ROOT: str = str(Path(CONFIG_ROOT) / "prompts")
+    # EXTRA_CONFIG_FILE: str = str(Path(CONFIG_ROOT) / "ex_config.yaml")
+    # JM_OPTION_CONFIG_FILE: str = str(Path(CONFIG_ROOT) / "jm" / "option.yml")
+    # COMMAND_CONFIG_FILE: str = str(Path(CONFIG_ROOT) / "components" / "command.yaml")
 
 
 class DBSetting(BaseSettings):
@@ -59,7 +63,6 @@ class NameSetting(BaseSettings):
 class LogSetting(BaseSettings):
     DEBUG: bool = True
     LOG_NAME: str = "log.qqbot.record"
-    LOG_PATH: str = "./log"
     LOG_FILE_LEVEL: str = "DEBUG"
     LOG_STREAM_LEVEL: str = "INFO"
     LOG_FILE_ENCODING: str = "utf-8"
@@ -69,8 +72,11 @@ class LogSetting(BaseSettings):
 class ServiceSetting(BaseSettings):
     # Bot基本设置
     BOT_UID: str = ""
-    BOT_WS_URL: str = ""
     BOT_TOKEN: str = ""
+    BOT_WS_URL: str = ""
+    BOT_WS_TOKEN: str | None = ""
+    BOT_WEBUI_URL: str = ""
+    BOT_WEBUI_TOKEN: str | None = ""
     
     # 大模型配置
     GPT_BASE_URL: str = ""
@@ -102,7 +108,7 @@ class ServiceSetting(BaseSettings):
     WALLPAPER_API: str = "https://api.anosu.top/img"
     WALLPAPER_R18_API: str = "https://image.anosu.top/pixiv/json"
     NEWS_API: str = ""
-    NEWS_SOURCES: dict[str, str] = []  # 信源中文名与路由名的映射
+    NEWS_SOURCES: dict[str, str] = {}  # 信源中文名与路由名的映射
 
     # 黑白名单（白名单非空时视为开启）
     GROUP_INSTRUCT_BLACK: dict[str, list[int]] = {
@@ -132,7 +138,7 @@ def load_config_yaml(path: Path) -> dict:
     if not path.exists():
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
-            f.write("")  # 空文件
+            f.write("")
         return {}
 
     with open(path, "r", encoding="utf-8") as f:
@@ -142,7 +148,7 @@ def load_config_yaml(path: Path) -> dict:
 
 def load_config() -> Setting:
     settings = Setting()
-    extra_config_file = Path(settings.EXTRA_CONFIG_FILE)
+    extra_config_file = Path(settings.CONFIG_ROOT) / "ex_config.yaml"
     extra_config = load_config_yaml(extra_config_file)
     for key in SysSetting.model_json_schema().get("properties", {}).keys():
         extra_config.pop(key, None)

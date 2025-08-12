@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import re
 from functools import partial
 from typing import Any, Optional, Union
@@ -14,7 +15,7 @@ from llama_index.core.llms import ChatMessage, CompletionResponse, ChatResponse
 
 from llama_index.llms.openai import OpenAI
 
-from qq_bot.utils.util import load_yaml
+from qq_bot.utils.util import load_file, save_file
 from qq_bot.utils.decorator import function_retry
 from qq_bot.utils.logger import logger
 
@@ -27,16 +28,18 @@ class OpenAIBase:
         self,
         base_url: str,
         api_key: str,
-        prompt_path: str,
+        prompt_path: str | Path,
         max_retries: int = 3,
         retry: int = 3,
         timeout: int = 60,
         **kwargs,
     ) -> None:
-        # assert os.path.isfile(prompt_path)
+        self.prompt_path = Path(prompt_path)
+        if not self.prompt_path.exists():
+            save_file(path=self.prompt_path, data={}, file_type="yaml")
 
         self.retry = retry
-        self.configs: dict = load_yaml(prompt_path)
+        self.configs: dict = load_file(path=prompt_path, file_type="yaml")
         self._load_config()
         
         self.client = OpenAI(

@@ -1,8 +1,9 @@
+from pathlib import Path
 import subprocess
 import shlex
 from qq_bot.base import ComponentBase
 from qq_bot.utils.decorator import require_active
-from qq_bot.utils.util import load_yaml
+from qq_bot.utils.util import load_file, save_file
 from qq_bot.utils.config import settings
 from qq_bot.utils.logger import logger
 
@@ -10,9 +11,14 @@ from qq_bot.utils.logger import logger
 class CommandProvider(ComponentBase):
     __component_name__ = settings.COMMAND_COMPONENT_NAME
     
-    def __init__(self, filepath: str):
+    def __init__(self, filepath: str | Path):
         super().__init__(filepath=filepath)
-        self.command_config = load_yaml(filepath)
+        self.filepath = Path(filepath)
+        self.filepath.parent.mkdir(parents=True, exist_ok=True)
+        if not self.filepath.exists():
+            save_file(path=self.filepath, data={}, file_type="yaml")
+        
+        self.command_config = load_file(self.filepath, file_type="yaml")
         if not self.command_config:
             self.activate(False)
 
@@ -76,4 +82,4 @@ class CommandProvider(ComponentBase):
     #         logger.warning(warning_log)
     #     return warning_log
 
-command_runner = CommandProvider(settings.COMMAND_CONFIG_FILE)
+command_runner = CommandProvider(Path(settings.CONFIG_ROOT) / "components/command.yaml")

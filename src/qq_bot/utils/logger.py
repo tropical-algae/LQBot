@@ -114,7 +114,7 @@ def get_system_logger_config(filename: str) -> dict:
 def get_logger_absolute_path(filename: str):
     return generate_filepath(
         filename=f'{filename}-{time.strftime("%Y-%m-%d", time.localtime())}.log',
-        filepath=os.path.join(os.getcwd(), settings.LOG_PATH),
+        filepath=os.path.join(os.getcwd(), settings.LOG_ROOT),
     )
 
 

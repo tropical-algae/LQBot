@@ -1,3 +1,4 @@
+from pathlib import Path
 import re
 import json
 import yaml
@@ -6,19 +7,63 @@ import string
 import pkgutil
 import importlib
 from PIL import Image
-from typing import Literal
+from typing import Any, Callable, Literal
 from qq_bot.utils.logger import logger
 
 
-def load_yaml(yaml_path: str) -> dict:
+READERS: dict[str, Callable[[Any], Any]] = {
+    "yaml": lambda f: yaml.safe_load(f),
+    "yml": lambda f: yaml.safe_load(f),
+    "json": lambda f: json.load(f),
+    "txt": lambda f: f.read(),
+}
+
+
+WRITERS: dict[str, Callable[[Any, Any], None]] = {
+    "yaml": lambda f, d: yaml.safe_dump(d, f),
+    "yml": lambda f, d: yaml.safe_dump(d, f),
+    "json": lambda f, d: json.dump(d, f, ensure_ascii=False, indent=4),
+    "txt": lambda f, d: f.write(str(d)),
+}
+
+
+def load_file(path: str | Path, file_type: Literal["yaml", "yml", "txt", "json"] | None = None) -> Any:
+    path = Path(path)
+
+    if not path.exists():
+        raise FileNotFoundError(f"File not found: {path}")
+
+    final_file_type: str = (file_type or path.suffix.lstrip(".")).lower()
+    reader = READERS.get(final_file_type)
+
+    if not reader:
+        raise ValueError(f"Unsupported file type: '{final_file_type}'")
+
     try:
-        with open(yaml_path) as yaml_file:
-            return yaml.safe_load(yaml_file)
+        with open(path, encoding="utf-8") as f:
+            return reader(f)
     except Exception as err:
-        logger.error(
-            f"[YAML Reader] Error occured when read YAML from path '{yaml_path}'. Error: {err}"
-        )
-        return {}
+        raise Exception(f"[{final_file_type}] Failed to read '{path}': {err}") from err
+
+
+def save_file(path: str | Path, data: Any, file_type: Literal["yaml", "yml", "txt", "json"] | None = None) -> bool:
+    path = Path(path)
+    if path.suffix == "":
+        raise ValueError(f"Illegal file path: {path}")
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    final_file_type: str = (file_type or path.suffix.lstrip(".")).lower()
+    writer = WRITERS.get(final_file_type)
+
+    if not writer:
+        raise ValueError(f"Unsupported file type: '{final_file_type}'")
+
+    try:
+        with open(path, "w", encoding="utf-8") as file:
+            writer(file, data)
+        return True
+    except Exception as err:
+        raise Exception(f"[{final_file_type}] Failed to write '{path}': {err}") from err
 
 
 def import_all_modules_from_package(package):
