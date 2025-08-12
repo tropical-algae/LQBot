@@ -45,13 +45,12 @@ class LLMChatter(OpenAIBase):
         self, 
         messages: GroupMessageData | list[GroupMessageData],
     ):
-        self.memory.upsert(messages=messages)
+        self.memory.update(messages=messages)
 
     async def run(self, message: GroupMessageData, **kwargs) -> str | None:
         if not self.active:
             return self.default_reply
         
-        self.update_memory(messages=message)
         memory: list = self.memory.load(message.group_id)
         llm_message = await self._async_inference(messages=memory, **kwargs)
 

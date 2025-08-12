@@ -9,7 +9,7 @@ class SysSetting(BaseSettings):
     PROJECT_NAME: str = "LQBot"
     
     CACHE_ROOT: str = "./cache"
-    CONFIG_ROOT: str = "./config"
+    CONFIG_ROOT: str = "./config_example"
     LOG_ROOT: str = "./log"
 
     # JM_CACHE_ROOT: str = str(Path(CACHE_ROOT) / "jm")

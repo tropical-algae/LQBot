@@ -2,7 +2,7 @@ import asyncio
 from ncatbot.core import GroupMessage, PrivateMessage
 from qq_bot.core.robot.base import AgentBase
 from ncatbot.plugin import CompatibleEnrollment
-from qq_bot.core.robot.service import init_agent
+from qq_bot.core.robot.service import init_agent, update_memory
 from qq_bot.core.robot.trigger import (
     group_at_chat,
     group_at_reply,
@@ -46,6 +46,7 @@ class LQBot(AgentBase):
                 return
 
             user_msg = await GroupMessageData.from_group_message(data=msg, from_bot=False, api=self.api)
+            update_memory(user_msg)
             for handler in self.group_command:
                 if await handler(agent=self, message=user_msg, origin_msg=msg):
                     break

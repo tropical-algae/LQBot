@@ -1,4 +1,5 @@
 from copy import deepcopy
+from itertools import chain
 
 from pydantic import BaseModel
 
@@ -19,6 +20,10 @@ class GroupMemory(BaseModel):
     # 群组id 对应的历史消息集合cache
     cache: list[list[GroupMessageData]] = []
     
+    @staticmethod
+    def get_sender_role(message: GroupMessageData) -> MessageRole:
+        return MessageRole.ASSISTANT if message.from_bot else MessageRole.USER
+    
     def insert_msg(self, messages: list[GroupMessageData] | GroupMessageData) -> None:
         if not isinstance(messages, list):
             messages = [messages]
@@ -38,20 +43,46 @@ class GroupMemory(BaseModel):
     
     def get_msgs(self, message_template: str) -> list[ChatMessage]:
         result: list[ChatMessage] = []
-        for msgs in self.cache[-self.context_length:]:
-            for msg in msgs:
-                role = MessageRole.ASSISTANT if msg.from_bot else MessageRole.ASSISTANT
-                text = (
-                    msg.content if msg.from_bot 
-                    else message_template.format(**{
-                        "text": msg.content,
-                        "time": msg.get_time(),
-                        "sender": msg.sender.nickname or "None"
-                    })
-                )
-                result.append(ChatMessage(content=text, role=role))
-        result = result[-self.context_length * 3:]
+        role_text = ""
+        
+        memory_chunk = list(chain.from_iterable(self.cache[-self.context_length:]))
+        last_role = None if len(memory_chunk) == 0 else self.get_sender_role(memory_chunk[0])
+        
+        for msg in memory_chunk:
+            role = self.get_sender_role(msg)
+            text = (
+                msg.content if msg.from_bot 
+                else message_template.format(**{
+                    "text": msg.content,
+                    "time": msg.get_time(),
+                    "sender": msg.sender.nickname or "None",
+                    "receiver": f"@{msg.receiver.nickname}" if msg.receiver else ""
+                })
+            )
+            if last_role != role:
+                result.append(ChatMessage(content=role_text, role=role))
+                role_text = ""
+                last_role = role
+            
+            role_text += f"{text}\n"
+
+        result.append(ChatMessage(content=role_text, role=role))
         return result
+        # result: list[ChatMessage] = []
+        # for msgs in self.cache[-self.context_length:]:
+        #     for msg in msgs:
+        #         role = MessageRole.ASSISTANT if msg.from_bot else MessageRole.ASSISTANT
+        #         text = (
+        #             msg.content if msg.from_bot 
+        #             else message_template.format(**{
+        #                 "text": msg.content,
+        #                 "time": msg.get_time(),
+        #                 "sender": msg.sender.nickname or "None"
+        #             })
+        #         )
+        #         result.append(ChatMessage(content=text, role=role))
+        # result = result[-self.context_length * 3:]
+        # return result
 
 class MemoryManager:
 
@@ -98,7 +129,7 @@ class MemoryManager:
         messages.insert(0, self.sys_prompt)
         return messages
 
-    def upsert(
+    def update(
         self,
         messages: GroupMessageData | list[GroupMessageData],
     ) -> None:

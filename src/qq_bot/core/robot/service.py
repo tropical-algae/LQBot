@@ -37,6 +37,11 @@ async def init_agent(
     llm.memory.init_memories()
 
 
+def update_memory(messages: GroupMessageData | list[GroupMessageData]) -> None:
+    llm: LLMChatter = llm_registrar.get(settings.CHATTER_LLM_CONFIG_NAME)
+    llm.update_memory(messages=messages)
+
+
 async def send_message(
     api: BotAPI, group_id: int, text: str, voice: bool = True, **kwargs
 ) -> GroupMessageData | None:
@@ -99,6 +104,6 @@ async def group_chat(
             messages.append(message)
     
     # 更新memory & 数据库
-    llm.update_memory(messages)
+    update_memory(messages)
 
     return True
