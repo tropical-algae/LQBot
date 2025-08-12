@@ -1,16 +1,29 @@
-version: "1"
+version: "3.9"
 
 services:
-  app:
-    container_name: "my_service"
-    build:
-      context: .
-      args:
-        DEV: "true"
+  napcat:
+    image: docker.1ms.run/mlikiowa/napcat-docker:latest
+    container_name: napcat
+    restart: always
+    environment:
+      - ACCOUNT=${BOT_UID}
+      - WS_ENABLE=true
+      - NAPCAT_GID=0
+      - NAPCAT_UID=0
     ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    command: poe run
+      - "3001:3001"
+      - "6099:6099"
     volumes:
-      - /data/log:/workspace/log
+      - /data/lqbot/cache:${CACHE_ROOT}
+      - /data/lqbot/napcat:/data/napcat/cache
+
+  lqbot:
+    image: lqbot:0.1.0
+    container_name: lqbot
+    restart: unless-stopped
+    depends_on:
+      - napcat
+    volumes:
+      - /data/lqbot/cache:${CACHE_ROOT}
+      - /data/lqbot/configs:${CONFIG_ROOT}
+      - /data/lqbot/log:${LOG_ROOT}

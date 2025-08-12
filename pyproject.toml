@@ -4,6 +4,9 @@ version = "0.1.0"
 description = "qq机器人"
 authors = ["tropical-algae <tropicalalgae@gmail.com>"]
 
+[[tool.poetry.source]]
+name = "proxy-source"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 
 [tool.poetry.dependencies]
 python = "^3.10"
