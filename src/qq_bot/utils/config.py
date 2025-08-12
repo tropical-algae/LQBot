@@ -1,13 +1,22 @@
+from pathlib import Path
+from typing import Any
 from pydantic_settings import BaseSettings
+import yaml
 
 
 class SysSetting(BaseSettings):
+    # SysSetting 配置不可在yaml配置中修改
     PROJECT_NAME: str = "LQBot"
-    DEBUG: bool = True
 
-    # Bot基本设置
-    BOT_UID: str = ""
-    BOT_WS_URL: str = ""
+    JM_CACHE_ROOT: str = "./cache/jm"
+    TTS_CACHE_ROOT: str = "./cache/tts"
+    RANDOM_PIC_CACHE_ROOT: str = "./cache/random_pic"
+    
+    # 额外配置
+    LOCAL_PROMPT_ROOT: str = "./configs/prompts"
+    EXTRA_CONFIG_FILE: str = "./configs/ex_config.yaml"
+    JM_OPTION_CONFIG_FILE: str = "./configs/jm/option.yml"
+    COMMAND_CONFIG_FILE: str = "./configs/components/command.yaml"
 
 
 class DBSetting(BaseSettings):
@@ -42,9 +51,13 @@ class NameSetting(BaseSettings):
     MYSQL_COMPONENT_NAME: str = "mysql"
     VECTOR_RETRIEVER_COMPONENT_NAME: str = "vector retriever"
     
+    # 注册的模型名（名称与LOCAL_PROMPT_ROOT下配置相对应）
+    CHATTER_LLM_CONFIG_NAME: str = "bot_chatter"
+    TOOLS_LLM_CONFIG_NAME: str = "bot_toolbox"
+    RELATION_EXTOR_LLM_CONFIG_NAME: str = "relation_extractor"
 
 class LogSetting(BaseSettings):
-    # logger
+    DEBUG: bool = True
     LOG_NAME: str = "log.qqbot.record"
     LOG_PATH: str = "./log"
     LOG_FILE_LEVEL: str = "DEBUG"
@@ -54,25 +67,23 @@ class LogSetting(BaseSettings):
 
 
 class ServiceSetting(BaseSettings):
+    # Bot基本设置
+    BOT_UID: str = ""
+    BOT_WS_URL: str = ""
+    BOT_TOKEN: str = ""
+    
     # 大模型配置
     GPT_BASE_URL: str = ""
     GPT_API_KEY: str = ""
-    LOCAL_PROMPT_ROOT: str = "./configs/llm"
     
     HUOSHAN_VOICE_LLM_APPID: str = ""
     HUOSHAN_VOICE_LLM_TOKEN: str = ""
     HUOSHAN_VOICE_LLM_CLUSTER: str = ""
-    
 
     # 嵌入模型配置
     EMBEDDING_BASE_URL: str = ""
     EMBEDDING_API_KEY: str = ""
     EMBEDDING_MODEL: str = "bge-m3"
-
-    # 注册的模型名（名称与LOCAL_PROMPT_ROOT下配置相对应）
-    CHATTER_LLM_CONFIG_NAME: str = "bot_chatter"
-    TOOLS_LLM_CONFIG_NAME: str = "bot_toolbox"
-    RELATION_EXTOR_LLM_CONFIG_NAME: str = "relation_extractor"
 
     # 指令集（作为前缀时触发）
     BOT_COMMAND_GROUP_CHAT: str = ""
@@ -88,17 +99,10 @@ class ServiceSetting(BaseSettings):
     VOICE_WILLINGNESS: float = 0.3
 
     # 第三方资源收集
-    TTS_CACHE_ROOT: str = "./cache/tts"
-    JM_CACHE_ROOT: str = "./cache/jm"
-    JM_OPTION: str = "./configs/jm/option.yml"
-    RANDOM_PIC_CACHE_ROOT: str = "./cache/random_pic"
     WALLPAPER_API: str = "https://api.anosu.top/img"
     WALLPAPER_R18_API: str = "https://image.anosu.top/pixiv/json"
     NEWS_API: str = ""
     NEWS_SOURCES: dict[str, str] = []  # 信源中文名与路由名的映射
-
-    # 额外配置
-    COMMAND_CONFIG_FILE: str = "configs/providers/command.yaml"
 
     # 黑白名单（白名单非空时视为开启）
     GROUP_INSTRUCT_BLACK: dict[str, list[int]] = {
@@ -124,4 +128,26 @@ class Setting(SysSetting, DBSetting, NameSetting, LogSetting, ServiceSetting):
         extra = "ignore"
 
 
-settings = Setting()
+def load_config_yaml(path: Path) -> dict:
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("")  # 空文件
+        return {}
+
+    with open(path, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    return data or {}
+
+
+def load_config() -> Setting:
+    settings = Setting()
+    extra_config_file = Path(settings.EXTRA_CONFIG_FILE)
+    extra_config = load_config_yaml(extra_config_file)
+    for key in SysSetting.model_json_schema().get("properties", {}).keys():
+        extra_config.pop(key, None)
+    
+    return settings.model_copy(update=extra_config)
+
+
+settings: Setting = load_config()

@@ -19,7 +19,7 @@ if __name__ == "__main__":
     config.set_bot_uin(settings.BOT_UID)
     config.set_root(settings.BOT_UID)
     config.set_ws_uri(settings.BOT_WS_URL)
-    config.set_token("")
+    config.set_token(settings.BOT_TOKEN)
 
     bot = BotClient()
     bot.run()
