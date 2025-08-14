@@ -82,4 +82,4 @@ class CommandProvider(ComponentBase):
     #         logger.warning(warning_log)
     #     return warning_log
 
-command_runner = CommandProvider(Path(settings.CONFIG_ROOT) / "components/command.yaml")
+command_runner = CommandProvider(Path(settings.CONFIG_ROOT) / "command.yaml")

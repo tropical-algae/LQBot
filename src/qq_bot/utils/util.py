@@ -7,6 +7,8 @@ import string
 import pkgutil
 import importlib
 from PIL import Image
+from dateutil import parser
+from datetime import date as dt_date
 from typing import Any, Callable, Literal
 from qq_bot.utils.logger import logger
 
@@ -154,16 +156,6 @@ def parse_text(text):
     return "".join(lines)
 
 
-def language_classifity(sentence: str) -> Literal["zh", "en"]:
-    chinese_chars = re.findall(r"[\u4e00-\u9fff]", sentence)
-    english_chars = re.findall(r"[a-zA-Z]", sentence)
-
-    if len(chinese_chars) > len(english_chars):
-        return "zh"
-    elif len(english_chars) > len(chinese_chars):
-        return "en"
-
-
 def strip_trailing_punct(line: str, lang: str) -> str:
     line = line.strip()
     if lang == "zh":
@@ -190,17 +182,12 @@ def split_sentence_en(text: str, strip_punct: bool) -> list[str]:
     return [strip_trailing_punct(line, "en") if strip_punct else line for line in lines]
 
 
-def auto_split_sentence(
-    text: str, language: Literal["zh", "en", None] = None, strip_punct: bool = True
-) -> list[str]:
-    language = language if language else language_classifity(text)
-    if language == "zh":
-        return split_sentence_zh(text, strip_punct)
-    else:
-        return split_sentence_en(text, strip_punct)
 
-
-def typing_time_calculate(text: str, language: Literal["zh", "en", None] = None) -> float:
-    language = language if language else language_classifity(text)
-    typing_time = len(text) / 3.0 / (5.0 if language == "en" else 1.0)
-    return typing_time + random.random()
+def normalize_date(user_input: str | None, default_today: bool = True) -> Any:
+    if not user_input:
+        return dt_date.today() if default_today else None
+    try:
+        parsed = parser.parse(user_input)
+        return parsed.date()
+    except (ValueError, TypeError):
+        return dt_date.today() if default_today else None

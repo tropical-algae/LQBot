@@ -3,7 +3,6 @@ import functools
 import inspect
 from typing import Any, Callable
 from ncatbot.core.message import BaseMessage, GroupMessage, PrivateMessage
-from qq_bot.conn.sql.session import LocalSession
 
 from qq_bot.utils.logger import logger
 from qq_bot.utils.config import settings
@@ -85,8 +84,8 @@ class MessageCommands:
             # 处理群聊指令
             if isinstance(origin_msg, GroupMessage):
                 func_name = func.__name__
-                white_list = settings.GROUP_INSTRUCT_WHITE.get(func_name, [])
-                black_list = settings.GROUP_INSTRUCT_BLACK.get(func_name, [])
+                white_list = settings.GROUP_CHAT_WHITE.get(func_name, [])
+                black_list = settings.GROUP_CHAT_BLACK.get(func_name, [])
 
                 # 检测黑白名单
                 if white_list:
@@ -161,32 +160,32 @@ def tools_logger(cls):
     return cls
 
 
-def sql_session(func: Callable):
-    """SQL连接装饰器，兼容同步和异步方法
+# def sql_session(func: Callable):
+#     """SQL连接装饰器，兼容同步和异步方法
 
-    Args:
-        func (Callable):
+#     Args:
+#         func (Callable):
 
-    Returns:
-        _type_:
-    """
-    if inspect.iscoroutinefunction(func):
+#     Returns:
+#         _type_:
+#     """
+#     if inspect.iscoroutinefunction(func):
 
-        @functools.wraps(func)
-        async def async_wrapper(*args, **kwargs):
-            with LocalSession() as db:
-                kwargs["db"] = db
-                return await func(*args, **kwargs)
+#         @functools.wraps(func)
+#         async def async_wrapper(*args, **kwargs):
+#             with LocalSession() as db:
+#                 kwargs["db"] = db
+#                 return await func(*args, **kwargs)
 
-        return async_wrapper  # type: ignore
-    else:
+#         return async_wrapper  # type: ignore
+#     else:
 
-        @functools.wraps(func)
-        def sync_wrapper(*args, **kwargs):
-            with LocalSession() as db:
-                return func(*args, db=db, **kwargs)
+#         @functools.wraps(func)
+#         def sync_wrapper(*args, **kwargs):
+#             with LocalSession() as db:
+#                 return func(*args, db=db, **kwargs)
 
-        return sync_wrapper
+#         return sync_wrapper
 
 
 def require_active(method: Callable = None, *, forcible: bool = False):

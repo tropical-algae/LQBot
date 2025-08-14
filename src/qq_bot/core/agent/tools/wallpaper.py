@@ -60,3 +60,6 @@ wallpaper_provider = WallpaperProvider(
     api_v1=settings.WALLPAPER_API,
     api_v2=settings.WALLPAPER_R18_API,
 )
+
+# for local_file_origin, url in wallpaper_provider.load_r18(num=2):
+#     print(local_file_origin + "  " + url)

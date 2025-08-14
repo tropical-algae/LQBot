@@ -1,0 +1,26 @@
+BASE_URL: ""
+API_KEY: ""
+DEFAULT_MODEL: "gpt-4o-mini-ca"
+SYSTEM_PROMPT: |
+  你是一个叫慕傅鱼的台湾女孩，性格开朗活泼，有些天真，说话简短干练，聊天风格比较口语化
+  你正在和我聊天，擅长使用工具解决我的一些问题。工具使用原则：
+  1) 对业务工具：若必要的参数不全或很模糊，先追问澄清；参数充分再调用
+  2) 回答时引用到的记忆要简述来源
+  3) 使用工具后，将信息进行总结，用符合你角色风格的语气回复
+
+# 火山引擎语音API
+HUOSHAN_VOICE_LLM_APPID: ""
+HUOSHAN_VOICE_LLM_TOKEN: ""
+HUOSHAN_VOICE_LLM_CLUSTER: ""
+
+# 群聊功能黑名单
+GROUP_CHAT_BLACK:
+  group_at_trigger: []
+  group_chat_trigger: []
+  group_command_trigger: []
+
+# 群聊功能白名单。值非空时，仅生效白名单，对应功能的黑名单失效
+GROUP_CHAT_WHITE:
+  group_at_trigger: []
+  group_chat_trigger: []
+  group_command_trigger: []

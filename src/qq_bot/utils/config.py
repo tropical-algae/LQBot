@@ -12,21 +12,8 @@ class SysSetting(BaseSettings):
     CONFIG_ROOT: str = "./config_example"
     LOG_ROOT: str = "./log"
 
-    # JM_CACHE_ROOT: str = str(Path(CACHE_ROOT) / "jm")
-    # TTS_CACHE_ROOT: str = str(Path(CACHE_ROOT) / "tts")
-    # RANDOM_PIC_CACHE_ROOT: str = str(Path(CACHE_ROOT) / "wallpaper")
-    
-    # 额外配置
-    # LOCAL_PROMPT_ROOT: str = str(Path(CONFIG_ROOT) / "prompts")
-    # EXTRA_CONFIG_FILE: str = str(Path(CONFIG_ROOT) / "ex_config.yaml")
-    # JM_OPTION_CONFIG_FILE: str = str(Path(CONFIG_ROOT) / "jm" / "option.yml")
-    # COMMAND_CONFIG_FILE: str = str(Path(CONFIG_ROOT) / "components" / "command.yaml")
-
 
 class DBSetting(BaseSettings):
-    # sql db
-    SQL_DATABASE_URI: str = ""
-
     # vector db
     VECTOR_STORE_URL: str = ""
     VECTOR_STORE_TOKEN: str = ""
@@ -36,14 +23,6 @@ class DBSetting(BaseSettings):
 
     VECTOR_SELECT_TOP_K: int = 4
     VECTOR_SELECT_THRESHOLD: float = 0.5
-
-    # minio
-    MINIO_ENDPOINT: str = ""
-    MINIO_ACCESS_KEY: str = ""
-    MINIO_SCCRET_KEY: str = ""
-    MINIO_JM_BOCKET_NAME: str = "jm-repertory"
-    MINIO_WALLPAPER_BOCKET_NAME: str = "wallpaper"
-    MINIO_WALLPAPER_R18_BOCKET_NAME: str = "wallpaper-r18"
 
 
 class NameSetting(BaseSettings):
@@ -79,8 +58,12 @@ class ServiceSetting(BaseSettings):
     BOT_WEBUI_TOKEN: str | None = ""
     
     # 大模型配置
-    GPT_BASE_URL: str = ""
-    GPT_API_KEY: str = ""
+    BASE_URL: str = ""
+    API_KEY: str = ""
+    DEFAULT_MODEL: str = ""
+    SYSTEM_PROMPT: str = ""
+    # 对话宽限期，短时间连续对话时内允许用户忽略触发词与bot交互
+    CHAT_GRACE_PERIOD: float = 15.0
     
     HUOSHAN_VOICE_LLM_APPID: str = ""
     HUOSHAN_VOICE_LLM_TOKEN: str = ""
@@ -92,38 +75,26 @@ class ServiceSetting(BaseSettings):
     EMBEDDING_MODEL: str = "bge-m3"
 
     # 指令集（作为前缀时触发）
-    BOT_COMMAND_GROUP_CHAT: str = ""
-    BOT_COMMAND_GROUP_REPLY: str = ""
-    BOT_COMMAND_GROUP_TOOL: str = ""
-    BOT_COMMAND_GROUP_JM_CHECK: str = "jm"
-    BOT_COMMAND_GROUP_RANDOM_PIC: str = "来点二次元"
-    BOT_COMMAND_GROUP_RANDOM_SETU: str = "来点涩图"
+    BOT_COMMAND_GROUP_CHAT: list = ["小鱼，", "小鱼"]
     BOT_COMMAND_GROUP_COMMAND: str = "/"
-
-    # 聊天意愿
-    CHAT_WILLINGNESS: float = 0.08
-    VOICE_WILLINGNESS: float = 0.3
 
     # 第三方资源收集
     WALLPAPER_API: str = "https://api.anosu.top/img"
     WALLPAPER_R18_API: str = "https://image.anosu.top/pixiv/json"
-    NEWS_API: str = ""
-    NEWS_SOURCES: dict[str, str] = {}  # 信源中文名与路由名的映射
+    HELLDIVERS2_API: str = "https://api.helldivers2.dev/api/v2"
+    HELLDIVERS2_CLIENT_NAME: str = "X-Super-Client"
+    HELLDIVERS2_CONTACT: str = "X-Super-Contact"
 
     # 黑白名单（白名单非空时视为开启）
-    GROUP_INSTRUCT_BLACK: dict[str, list[int]] = {
-        "group_wallpaper": [],
-        "group_wallpaper_r18": [],
-        "group_use_tool": [],
-        "group_at_reply": [],
-        "group_at_chat": [],
+    GROUP_CHAT_BLACK: dict[str, list[int]] = {
+        "group_at_trigger": [],
+        "group_chat_trigger": [],
+        "group_command_trigger": [],
     }
-    GROUP_INSTRUCT_WHITE: dict[str, list[int]] = {
-        "group_wallpaper": [],
-        "group_wallpaper_r18": [],
-        "group_use_tool": [],
-        "group_at_reply": [],
-        "group_at_chat": [],
+    GROUP_CHAT_WHITE: dict[str, list[int]] = {
+        "group_at_trigger": [],
+        "group_chat_trigger": [],
+        "group_command_trigger": [],
     }
 
 
@@ -148,7 +119,7 @@ def load_config_yaml(path: Path) -> dict:
 
 def load_config() -> Setting:
     settings = Setting()
-    extra_config_file = Path(settings.CONFIG_ROOT) / "ex_config.yaml"
+    extra_config_file = Path(settings.CONFIG_ROOT) / "config.yaml"
     extra_config = load_config_yaml(extra_config_file)
     for key in SysSetting.model_json_schema().get("properties", {}).keys():
         extra_config.pop(key, None)

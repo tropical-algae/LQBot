@@ -1,9 +1,21 @@
 from datetime import datetime
-from typing import Optional, Union
-from pydantic import BaseModel
+from enum import Enum
+import random
+import re
+from typing import Any, Optional, Union
+from pydantic import BaseModel, field_validator
 from ncatbot.core import BotAPI, GroupMessage
 
-from qq_bot.conn.sql.models import GroupMessageModel, QUserModel
+from qq_bot.utils.util import split_sentence_en, split_sentence_zh
+
+
+class MessageType(Enum):
+    TEXT: str = "text"
+    VOICE: str = "voice"
+
+class MessageLanguage(Enum):
+    ZH: str = "zh"
+    EN: str = "en"
 
 
 class QUserData(BaseModel):
@@ -51,20 +63,6 @@ class QUserData(BaseModel):
             )
 
         return None
-
-    @classmethod
-    def from_quser_model(cls, data: QUserModel | None) -> Optional["QUserData"]:
-        return (
-            cls(
-                id=data.id,
-                nickname=data.nickname,
-                sex=data.sex,
-                age=data.age,
-                card=data.card,
-            )
-            if data
-            else None
-        )
 
 
 class GroupMessageData(BaseModel):
@@ -115,41 +113,43 @@ class GroupMessageData(BaseModel):
             send_time=send_time,
         )
 
-    @classmethod
-    def from_group_message_model(
-        cls, data: GroupMessageModel, sender: QUserModel, receiver: QUserModel | None = None
-    ) -> "GroupMessageData":
-        sender_obj = QUserData.from_quser_model(sender)
-        receiver_obj = QUserData.from_quser_model(receiver) if receiver else None
 
-        return cls(
-            id = data.id,
-            content = data.message,
-            group_id = data.group_id,
-            sender = sender_obj,
-            receiver = receiver_obj,
-            reply_to_id = data.reply_to_id,
-            from_bot = data.from_bot,
-            send_time = data.create_time
-        )
-
-    def to_group_message_model(self) -> GroupMessageModel:
-        return GroupMessageModel(
-            id=self.id,
-            group_id=self.group_id,
-            sender_id=self.sender.id,
-            message=self.content,
-            from_bot=self.from_bot,
-            reply_to_id=self.reply_to_id,
-            receiver_id=self.receiver.id if self.receiver else None,
-            create_time=self.send_time
-        )
-
-
-class PrivateMessageRecord(BaseModel):
+class AgentMessage(BaseModel):
     id: str
+    session_id: str
     content: str
-    sender_id: str
+    message_type: MessageType
+    can_split: bool
+    language: MessageLanguage | None = None
+    
+    @field_validator('language', mode='before')
+    def set_content_length(cls, v, values):
+        if v is None and 'content' in values:
+            content = values['content']
+            chinese_chars = re.findall(r"[\u4e00-\u9fff]", content)
+            english_chars = re.findall(r"[a-zA-Z]", content)
+
+            if len(chinese_chars) > len(english_chars):
+                return MessageLanguage.ZH
+            elif len(english_chars) > len(chinese_chars):
+                return MessageLanguage.EN
+            
+        return v
+
+    def content_typing_times(self, split: bool | None = None) -> list[float]:
+        can_split = self.can_split if split is None else split
+        contents = self.content_splited() if can_split else [self.content]
+        results = [
+            len(content) / 3.0 / (5.0 if self.language == "en" else 1.0) + random.random()
+            for content in contents
+        ]
+        return results
+
+    def content_splited(self) -> list[str]:
+        if self.language == MessageLanguage.ZH:
+            return split_sentence_zh(self.content, True)
+        else:
+            return split_sentence_en(self.content, True)
 
 
 class EntityObject(BaseModel):
