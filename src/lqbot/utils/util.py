@@ -10,7 +10,7 @@ from PIL import Image
 from dateutil import parser
 from datetime import date as dt_date
 from typing import Any, Callable, Literal
-from qq_bot.utils.logger import logger
+from lqbot.utils.logger import logger
 
 
 READERS: dict[str, Callable[[Any], Any]] = {

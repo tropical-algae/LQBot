@@ -4,12 +4,12 @@ import random
 import uuid
 from ncatbot.core import GroupMessage, BotAPI
 
-from qq_bot.core.agent.agent import agent
-from qq_bot.core.robot.handlers.voice import voice_query
-from qq_bot.utils.models import AgentMessage, GroupMessageData, MessageType, QUserData
+from lqbot.core.agent.agent import agent
+from lqbot.core.robot.handlers.voice import voice_query
+from lqbot.utils.models import AgentMessage, GroupMessageData, MessageType, QUserData
 
-from qq_bot.utils.config import settings
-from qq_bot.utils.logger import logger
+from lqbot.utils.config import settings
+from lqbot.utils.logger import logger
 
 
 TTS_ROOT = Path(settings.CACHE_ROOT) / "tts"

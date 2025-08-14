@@ -8,10 +8,10 @@ from datetime import date as dt_date, datetime
 
 from pydantic import BaseModel
 
-from qq_bot.core.agent.tools.base import ToolBase
-from qq_bot.utils.models import AgentMessage
-from qq_bot.utils.util import normalize_date
-from qq_bot.utils.config import settings
+from lqbot.core.agent.tools.base import ToolBase
+from lqbot.utils.models import AgentMessage
+from lqbot.utils.util import normalize_date
+from lqbot.utils.config import settings
 
 
 class NewsSubject(str, Enum):

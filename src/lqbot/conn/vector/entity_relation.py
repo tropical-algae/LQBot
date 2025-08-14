@@ -4,13 +4,13 @@ from llama_index.core import Document, VectorStoreIndex
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.vector_stores.types import MetadataFilters
 
-from qq_bot.utils.models import (
+from lqbot.utils.models import (
     EntityObject,
     GroupMessageData,
     RelationTriplet,
 )
-from qq_bot.conn.vector.base import VectorStoreBase
-from qq_bot.utils.config import settings
+from lqbot.conn.vector.base import VectorStoreBase
+from lqbot.utils.config import settings
 
 
 class EntityRelationVectorStore(VectorStoreBase):

@@ -1,7 +1,7 @@
 
 
-from qq_bot.core.agent.tools.base import ToolBase
-from qq_bot.utils.models import AgentMessage, MessageType
+from lqbot.core.agent.tools.base import ToolBase
+from lqbot.utils.models import AgentMessage, MessageType
 
 
 class VoiceRequestTool(ToolBase):

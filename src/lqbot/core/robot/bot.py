@@ -5,20 +5,17 @@ from ncatbot.core import GroupMessage, PrivateMessage
 from ncatbot.plugin import CompatibleEnrollment
 from ncatbot.core import BotAPI, BotClient, GroupMessage, PrivateMessage
 from ncatbot.utils.config import config
-from ncatbot.utils import get_log
 
-from qq_bot.core.robot.handlers.sender import group_chat
-from qq_bot.core.robot.trigger import (
+from lqbot.core.robot.handlers.sender import group_chat
+from lqbot.core.robot.trigger import (
     group_at_trigger,
     group_chat_trigger,
     group_command_trigger,
 )
-from qq_bot.utils.models import GroupMessageData, QUserData
-# from qq_bot.utils.logger import logger
-from qq_bot.utils.config import settings
-
-
-logger = get_log()
+from lqbot.utils.models import GroupMessageData, QUserData
+# from lqbot.utils.logger import logger
+from lqbot.utils.config import settings
+from lqbot.utils.logger import logger
 
 
 class LQBot:

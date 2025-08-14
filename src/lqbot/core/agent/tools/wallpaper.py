@@ -5,9 +5,9 @@ import random
 from typing import Generator
 import requests
 
-from qq_bot.base import ComponentBase
-from qq_bot.utils.config import settings
-from qq_bot.utils.decorator import require_active
+from lqbot.base import ComponentBase
+from lqbot.utils.config import settings
+from lqbot.utils.decorator import require_active
 
 
 class WallpaperProvider(ComponentBase):

@@ -1,5 +1,8 @@
-from qq_bot.utils.logger import logger
+from lqbot.utils.logger import logger
+from ncatbot.utils import get_log
 
+
+logger = get_log()
 
 
 

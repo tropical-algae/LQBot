@@ -6,8 +6,8 @@ import uuid
 import json
 import gzip
 import copy
-from qq_bot.utils.logger import logger
-from qq_bot.utils.config import settings
+from lqbot.utils.logger import logger
+from lqbot.utils.config import settings
 
 MESSAGE_TYPES = {11: "audio-only server response", 12: "frontend server response", 15: "error message from server"}
 MESSAGE_TYPE_SPECIFIC_FLAGS = {0: "no sequence number", 1: "sequence number > 0",

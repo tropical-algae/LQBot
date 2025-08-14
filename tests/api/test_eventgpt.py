@@ -1,6 +1,6 @@
 # import pytest
 # from fastapi.testclient import TestClient
-# from qq_bot.basekit.config import settings
+# from lqbot.basekit.config import settings
 
 # from tests.conftest import DataStore
 

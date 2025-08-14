@@ -39,14 +39,13 @@ class NameSetting(BaseSettings):
     TOOLS_LLM_CONFIG_NAME: str = "bot_toolbox"
     RELATION_EXTOR_LLM_CONFIG_NAME: str = "relation_extractor"
 
-class LogSetting(BaseSettings):
-    DEBUG: bool = True
-    LOG_NAME: str = "log.qqbot.record"
-    LOG_FILE_LEVEL: str = "DEBUG"
-    LOG_STREAM_LEVEL: str = "INFO"
-    LOG_FILE_ENCODING: str = "utf-8"
-    LOG_CONSOLE_OUTPUT: bool = False
-
+# class LogSetting(BaseSettings):
+#     DEBUG: bool = True
+#     LOG_NAME: str = "log.qqbot.record"
+#     LOG_FILE_LEVEL: str = "DEBUG"
+#     LOG_STREAM_LEVEL: str = "INFO"
+#     LOG_FILE_ENCODING: str = "utf-8"
+#     LOG_CONSOLE_OUTPUT: bool = False
 
 class ServiceSetting(BaseSettings):
     # Bot基本设置
@@ -98,7 +97,7 @@ class ServiceSetting(BaseSettings):
     }
 
 
-class Setting(SysSetting, DBSetting, NameSetting, LogSetting, ServiceSetting):
+class Setting(SysSetting, DBSetting, NameSetting, ServiceSetting):
     class Config:
         env_file = ".env"
         case_sensitive = True

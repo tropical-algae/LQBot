@@ -47,11 +47,3 @@ clean:
 	rm -rf .mypy_cache;
 	rm -rf .ruff_cache;
 	rm -rf .cache;
-
-update-db:
-	sqlacodegen --generator sqlmodels \
-    --tables \
-	group_message_v1,\
-	user_group_v1,\
-	user_v1 \
-    --outfile ./src/qq_bot/conn/sql/models.py ${SQL_DATABASE_URI}

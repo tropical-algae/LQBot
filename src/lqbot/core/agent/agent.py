@@ -12,12 +12,12 @@ from llama_index.core.agent.workflow import FunctionAgent, ReActAgent, AgentOutp
 from llama_index.core.workflow import Context
 
 
-import qq_bot.core.agent.tools as agent_toolbox
-from qq_bot.core.agent.tools.base import ToolBase
-from qq_bot.utils.models import AgentMessage, MessageType
-from qq_bot.utils.util import import_all_modules_from_package
-from qq_bot.utils.logger import logger
-from qq_bot.utils.config import settings
+import lqbot.core.agent.tools as agent_toolbox
+from lqbot.core.agent.tools.base import ToolBase
+from lqbot.utils.models import AgentMessage, MessageType
+from lqbot.utils.util import import_all_modules_from_package
+from lqbot.utils.logger import logger
+from lqbot.utils.config import settings
 
 
 class Agent:

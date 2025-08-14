@@ -4,9 +4,9 @@ import inspect
 from typing import Any, Callable
 from ncatbot.core.message import BaseMessage, GroupMessage, PrivateMessage
 
-from qq_bot.utils.logger import logger
-from qq_bot.utils.config import settings
-from qq_bot.utils.util import get_data_from_message
+from lqbot.utils.logger import logger
+from lqbot.utils.config import settings
+from lqbot.utils.util import get_data_from_message
 
 
 PRINTABLE_TYPES = (int, float, str, bool, list, dict, tuple, type(None))

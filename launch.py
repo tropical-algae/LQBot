@@ -2,9 +2,9 @@
 # utils.PLUGINS_DIR = "src"
 
 import json
-from qq_bot.core.robot.bot import LQBot
-from qq_bot.utils.logger import logger
-from qq_bot.utils.config import settings
+from lqbot.core.robot.bot import LQBot
+from lqbot.utils.logger import logger
+from lqbot.utils.config import settings
 
 
 if __name__ == "__main__":

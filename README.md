@@ -28,7 +28,7 @@ make activate
 
 Before starting the project, please complete the configuration first.
 
-[.env.example](.env.example) is a sample configuration, for more configurations, please check [HERE](src/qq_bot/common/config.py)
+[.env.example](.env.example) is a sample configuration, for more configurations, please check [HERE](src/lqbot/common/config.py)
 
 ### Runnning
 
@@ -76,80 +76,3 @@ poe update-db
 > <http://localhost:8080/docs>
 
 The system defaults to starting on port `8000`, or you can modify this value in the configuration file
-
-## Project Structure
-
-Files related to application are in the `src` or `tests` directories.
-
-Overall includes:
-
-.
-├── alembic.ini
-├── docker-compose.yml
-├── Dockerfile
-├── Makefile
-├── notebooks
-├── poetry.lock
-├── poetry.toml
-├── pyproject.toml
-├── README.md
-├── src
-│   └── qq_bot
-│       ├── alembic
-│       │   ├── env.py
-│       │   ├── README
-│       │   ├── script.py.mako
-│       │   └── versions
-│       │       └── 62c8f0fbfb56_generate_uesr_db.py
-│       ├── app
-│       │   ├── api
-│       │   │   ├── deps.py
-│       │   │   ├── endpoints
-│       │   │   │   ├── eventgpt.py
-│       │   │   │   ├── __init__.py
-│       │   │   │   └── user.py
-│       │   │   ├── __init__.py
-│       │   │   └── routers.py
-│       │   ├── core
-│       │   │   ├── constant.py
-│       │   │   ├── errors.py
-│       │   │   ├── events.py
-│       │   │   ├── __init__.py
-│       │   │   └── security.py
-│       │   ├── db
-│       │   │   ├── crud
-│       │   │   │   ├── crud_user.py
-│       │   │   │   └── __init__.py
-│       │   │   ├── __init__.py
-│       │   │   ├── models.py
-│       │   │   └── session.py
-│       │   ├── __init__.py
-│       │   ├── models
-│       │   │   ├── __init__.py
-│       │   │   ├── model_eventgpt.py
-│       │   │   └── model_user.py
-│       │   └── services
-│       │       ├── __init__.py
-│       │       └── service_eventgpt.py
-│       ├── common
-│       │   ├── config.py
-│       │   ├── __init__.py
-│       │   ├── logging.py
-│       │   └── util.py
-│       ├── __init__.py
-│       ├── main.py
-│       └── service
-│           ├── __init__.py
-│           ├── llm
-│           │   ├── base.py
-│           │   ├── __init__.py
-│           │   └── openai.py
-│           └── prompts
-│               └── eventgpt_prompt.yaml
-└── tests
-    ├── api
-    │   ├── __init__.py
-    │   ├── test_eventgpt.py
-    │   └── test_user.py
-    ├── conftest.py
-    └── __init__.py

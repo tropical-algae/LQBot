@@ -4,9 +4,9 @@ from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.vector_stores.milvus import MilvusVectorStore
 from llama_index.core import StorageContext, VectorStoreIndex, Document
 from llama_index.core.vector_stores.types import MetadataFilters, MetadataFilter
-from qq_bot.base import ComponentBase
-from qq_bot.utils.config import settings
-from qq_bot.utils.decorator import require_active
+from lqbot.base import ComponentBase
+from lqbot.utils.config import settings
+from lqbot.utils.decorator import require_active
 
 
 def build_filter(condition: dict):

@@ -4,14 +4,14 @@ import random
 from ncatbot.core import BotAPI, BotClient, GroupMessage, PrivateMessage
 from PIL import Image
 
-from qq_bot.utils.decorator import MessageCommands
-from qq_bot.utils.models import GroupMessageData
-from qq_bot.utils.util import blue_image
-from qq_bot.core.robot.handlers.sender import group_chat, send_group_message
-from qq_bot.utils.config import settings
-from qq_bot.utils.logger import logger
-from qq_bot.core.robot.handlers.command import command_runner
-from qq_bot.utils.util import text_simplification
+from lqbot.utils.decorator import MessageCommands
+from lqbot.utils.models import GroupMessageData
+from lqbot.utils.util import blue_image
+from lqbot.core.robot.handlers.sender import group_chat, send_group_message
+from lqbot.utils.config import settings
+from lqbot.utils.logger import logger
+from lqbot.core.robot.handlers.command import command_runner
+from lqbot.utils.util import text_simplification
 
 
 # @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_RANDOM_PIC}")

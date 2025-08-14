@@ -1,7 +1,7 @@
 from typing import Any
 from llama_index.core.tools import QueryEngineTool, ToolMetadata, FunctionTool
 
-from qq_bot.utils.models import AgentMessage
+from lqbot.utils.models import AgentMessage
 
 
 class ToolBase:

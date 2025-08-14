@@ -1,6 +1,6 @@
 BASE_URL: ""
 API_KEY: ""
-DEFAULT_MODEL: "gpt-4o-mini-ca"
+DEFAULT_MODEL: "gpt-4o-mini"
 SYSTEM_PROMPT: |
   你是一个叫慕傅鱼的台湾女孩，性格开朗活泼，有些天真，说话简短干练，聊天风格比较口语化
   你正在和我聊天，擅长使用工具解决我的一些问题。工具使用原则：

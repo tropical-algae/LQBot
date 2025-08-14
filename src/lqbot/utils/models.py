@@ -6,7 +6,7 @@ from typing import Any, Optional, Union
 from pydantic import BaseModel, field_validator
 from ncatbot.core import BotAPI, GroupMessage
 
-from qq_bot.utils.util import split_sentence_en, split_sentence_zh
+from lqbot.utils.util import split_sentence_en, split_sentence_zh
 
 
 class MessageType(Enum):

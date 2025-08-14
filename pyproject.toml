@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "qq_bot"
+name = "lqbot"
 version = "0.1.0"
 description = "qq机器人"
 authors = ["tropical-algae <tropicalalgae@gmail.com>"]
@@ -58,7 +58,7 @@ mangum = "^0.17.0"
 
 
 [[tool.poetry.packages]]
-include = "qq_bot"
+include = "lqbot"
 from = "src"
 
 

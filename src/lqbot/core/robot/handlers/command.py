@@ -1,11 +1,11 @@
 from pathlib import Path
 import subprocess
 import shlex
-from qq_bot.base import ComponentBase
-from qq_bot.utils.decorator import require_active
-from qq_bot.utils.util import load_file, save_file
-from qq_bot.utils.config import settings
-from qq_bot.utils.logger import logger
+from lqbot.base import ComponentBase
+from lqbot.utils.decorator import require_active
+from lqbot.utils.util import load_file, save_file
+from lqbot.utils.config import settings
+from lqbot.utils.logger import logger
 
 
 class CommandProvider(ComponentBase):
