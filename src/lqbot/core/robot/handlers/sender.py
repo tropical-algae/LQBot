@@ -1,9 +1,8 @@
 import asyncio
-import random
 import uuid
 from pathlib import Path
 
-from ncatbot.core import BotAPI, GroupMessage
+from ncatbot.core import BotAPI
 
 from lqbot.core.agent.agent import agent
 from lqbot.core.robot.handlers.voice import voice_query
@@ -32,20 +31,16 @@ async def send_group_message(
             )
             logger.info(f"[GROUP {group_id}][bot]:\t<语音 {filepath}> {text_abs}")
             return
-        await api.post_group_msg(group_id=group_id, text=text, **kwargs)
-        logger.info(f"[GROUP {group_id}][bot]:\t{text_abs}")
+    await api.post_group_msg(group_id=group_id, text=text, **kwargs)
+    logger.info(f"[GROUP {group_id}][bot]:\t{text_abs}")
 
 
 async def group_chat(
-    api: BotAPI,
-    message: GroupMessageData,
+    api: BotAPI, message: GroupMessageData, use_agent: bool = True
 ) -> bool:
     group_id = message.group_id
 
-    response: AgentMessage = await agent.run(
-        session_id=str(group_id), message=message.content
-    )
-
+    response: AgentMessage = await agent.run(str(group_id), message.content, use_agent)
     if not response:
         return False
 

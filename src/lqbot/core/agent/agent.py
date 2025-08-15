@@ -1,5 +1,5 @@
-import lqbot.core.agent.tools as agent_toolbox
 from llama_index.core.agent.workflow import AgentOutput, FunctionAgent, ReActAgent
+from llama_index.core.llms import CompletionResponse
 from llama_index.core.memory import (
     BaseMemoryBlock,
     FactExtractionMemoryBlock,
@@ -10,6 +10,8 @@ from llama_index.core.memory import (
 )
 from llama_index.core.workflow import Context
 from llama_index.llms.openai import OpenAI
+
+import lqbot.core.agent.tools as agent_toolbox
 from lqbot.core.agent.tools.base import ToolBase
 from lqbot.utils.config import settings
 from lqbot.utils.logger import logger
@@ -85,20 +87,34 @@ class Agent:
         return tools
 
     @staticmethod
-    def build_default_agent_message(session_id: str, output: AgentOutput) -> AgentMessage:
+    def build_default_agent_message(
+        session_id: str, output: AgentOutput | CompletionResponse
+    ) -> AgentMessage:
+        if isinstance(output, AgentOutput):
+            id = output.raw.get("id", "chatcmpl-NONEID")  # type: ignore
+            content = output.response.content
+        else:
+            id = output.raw.id  # type: ignore
+            content = output.text
+
         return AgentMessage(
-            id=output.raw.get("id", "chatcmpl-NONEID"),  # type: ignore
+            id=id,
             session_id=session_id,
-            content=output.response.content,
+            content=content,
             message_type=MessageType.TEXT,
             can_split=True,
         )
 
-    async def run(self, session_id: str, message: str) -> AgentMessage:
+    async def _run_llm(self, session_id: str, message: str, **kwargs) -> AgentMessage:
+        response = await self.client.acomplete(prompt=message, **kwargs)
+        result = self.build_default_agent_message(session_id=session_id, output=response)
+        return result
+
+    async def _run_agent(self, session_id: str, message: str, **kwargs) -> AgentMessage:
         ctx = self._get_context(session_id)
         memory = self._get_memory(session_id)
         response: AgentOutput = await self.agent.run(
-            user_msg=message, memory=memory, context=ctx
+            user_msg=message, memory=memory, context=ctx, **kwargs
         )
 
         result = self.build_default_agent_message(session_id=session_id, output=response)
@@ -110,6 +126,15 @@ class Agent:
             await tool.a_tool_post_processing_function(result)
 
         return result
+
+    async def run(
+        self, session_id: str, message: str, use_agent: bool = True, **kwargs
+    ) -> AgentMessage:
+        return (
+            await self._run_agent(session_id=session_id, message=message, **kwargs)
+            if use_agent
+            else await self._run_llm(session_id=session_id, message=message, **kwargs)
+        )
 
 
 agent = Agent(
