@@ -1,19 +1,20 @@
 import asyncio
 import functools
 import inspect
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
+
 from ncatbot.core.message import BaseMessage, GroupMessage, PrivateMessage
 
-from lqbot.utils.logger import logger
 from lqbot.utils.config import settings
+from lqbot.utils.logger import logger
 from lqbot.utils.util import get_data_from_message
-
 
 PRINTABLE_TYPES = (int, float, str, bool, list, dict, tuple, type(None))
 
 
 def function_retry(times=None):
-    """重试装饰器，兼容函数、类函数、同步/异步函数
+    """重试装饰器 兼容函数、类函数、同步/异步函数
 
     Args:
         times (_type_, optional): 重试次数. Defaults to None.
@@ -120,12 +121,12 @@ class MessageCommands:
 
             # 处理私聊指令
             elif isinstance(origin_msg, PrivateMessage):
-                content: str = (
+                content = (
                     get_data_from_message(origin_msg.message, "text")
                     .get("text", "")
                     .strip()
                 )
-                at: bool = True
+                at = True
 
             # 判断🐟执行
             for command in self.commands:
@@ -150,9 +151,9 @@ def tools_logger(cls):
         param = {k: v for k, v in kwargs.items() if isinstance(v, PRINTABLE_TYPES)}
         status = tool_function(*args, **kwargs)
         if status:
-            logger.info(f"工具调用成功[{cls.tool_name}]: {str(param)}")
+            logger.info(f"工具调用成功[{cls.tool_name}]: {param!s}")
         else:
-            logger.error(f"工具调用失败[{cls.tool_name}]: {str(param)}")
+            logger.error(f"工具调用失败[{cls.tool_name}]: {param!s}")
 
         return status
 
@@ -188,7 +189,7 @@ def tools_logger(cls):
 #         return sync_wrapper
 
 
-def require_active(method: Callable = None, *, forcible: bool = False):
+def require_active(method: Callable | None = None, *, forcible: bool = False):
     """Decorator to check if self.active is True, unless forcible=True. Supports sync and async methods."""
 
     def decorator(func: Callable):
@@ -221,9 +222,10 @@ def require_active(method: Callable = None, *, forcible: bool = False):
         return decorator(method)
     return decorator
 
+
 # def require_active(method: Callable = None, *, forcible: bool = False):
 #     """Decorator to check if self.active is True, unless forcible=True"""
-    
+
 #     def decorator(func: Callable):
 #         @functools.wraps(func)
 #         def wrapper(self, *args, **kwargs) -> Any:

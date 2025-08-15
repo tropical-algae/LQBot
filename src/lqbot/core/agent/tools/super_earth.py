@@ -1,22 +1,19 @@
-
-import asyncio
+from datetime import date as dt_date
+from datetime import datetime
 from enum import Enum
-from typing import List, Annotated, Optional
-from dateutil import parser
+from typing import Annotated, Optional
+
 import httpx
-from datetime import date as dt_date, datetime
-
-from pydantic import BaseModel
-
 from lqbot.core.agent.tools.base import ToolBase
+from lqbot.utils.config import settings
 from lqbot.utils.models import AgentMessage
 from lqbot.utils.util import normalize_date
-from lqbot.utils.config import settings
+from pydantic import BaseModel
 
 
 class NewsSubject(str, Enum):
     DISPATCHES = "前线讯息"
-    SITUATION = "战况与局势"
+    SITUATION = "战况局势"
 
 
 class Dispatches(BaseModel):
@@ -24,7 +21,7 @@ class Dispatches(BaseModel):
     published: str
     type: int
     message: str
-    
+
     def summary(self) -> str:
         return f"{self.published} 讯息: {self.message}"
 
@@ -46,7 +43,7 @@ class HelldiversAPIClient:
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.get(url, headers=self.headers)
             response.raise_for_status()
-            
+
             # 转换并查找
             same_day_items = []
             data = response.json()
@@ -58,15 +55,19 @@ class HelldiversAPIClient:
             if same_day_items:
                 result = same_day_items
             else:
-                current_item = max(data, key=lambda x: datetime.fromisoformat(x["published"].replace("Z", "+00:00")))
+                current_item = max(
+                    data,
+                    key=lambda x: datetime.fromisoformat(
+                        x["published"].replace("Z", "+00:00")
+                    ),
+                )
                 result = [Dispatches(**current_item)]
-            
+
             return "\n".join([msg.summary() for msg in result])
 
 
 hd_client = HelldiversAPIClient(
-    client_name=settings.HELLDIVERS2_CLIENT_NAME, 
-    contact=settings.HELLDIVERS2_CONTACT
+    client_name=settings.HELLDIVERS2_CLIENT_NAME, contact=settings.HELLDIVERS2_CONTACT
 )
 
 
@@ -79,23 +80,29 @@ hd_client = HelldiversAPIClient(
 
 class SuperEarthTool(ToolBase):
     __tool_name__ = "super_earth_tool"
-    __tool_description__ = "若用户想了解“超级地球”的消息，请调用。注意，必须是有关“超级地球”的信息"
+    __tool_description__ = (
+        "若用户想了解“超级地球”的消息，请调用。注意，必须是有关“超级地球”的信息"
+    )
     __is_async__ = True
-    
+
+    @staticmethod
     async def a_tool_function(
-        news_type: Annotated[Optional[NewsSubject], "用户想了解的消息的主题"],
-        date: Annotated[str, "信息的日期，例如 2025-08-20。可以不提供日期"] = None,
-    ) -> None:
+        news_type: Annotated[NewsSubject, "用户想了解的消息的主题"],
+        date: Annotated[
+            Optional[str], "信息的日期，例如 2025-08-20。可以不提供日期"
+        ] = None,
+    ) -> str:
         news_type = NewsSubject(news_type)
         target_date: dt_date = normalize_date(date)
-        
+
         if news_type == NewsSubject.DISPATCHES:
             return await hd_client.get_dispatches(target_date=target_date)
-        
+
         if news_type == NewsSubject.SITUATION:
             pass
-        
+
         return "不太清楚呢"
-    
+
+    @staticmethod
     def tool_post_processing_function(agent_message: AgentMessage) -> None:
         agent_message.can_split = False

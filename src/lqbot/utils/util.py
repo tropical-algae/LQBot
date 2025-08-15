@@ -1,17 +1,19 @@
-from pathlib import Path
-import re
-import json
-import yaml
-import random
-import string
-import pkgutil
 import importlib
-from PIL import Image
-from dateutil import parser
+import json
+import pkgutil
+import random
+import re
+import string
+from collections.abc import Callable
 from datetime import date as dt_date
-from typing import Any, Callable, Literal
-from lqbot.utils.logger import logger
+from pathlib import Path
+from typing import Any, Literal
 
+import yaml
+from dateutil import parser
+from PIL import Image
+
+from lqbot.utils.logger import logger
 
 READERS: dict[str, Callable[[Any], Any]] = {
     "yaml": lambda f: yaml.safe_load(f),
@@ -29,7 +31,9 @@ WRITERS: dict[str, Callable[[Any, Any], None]] = {
 }
 
 
-def load_file(path: str | Path, file_type: Literal["yaml", "yml", "txt", "json"] | None = None) -> Any:
+def load_file(
+    path: str | Path, file_type: Literal["yaml", "yml", "txt", "json"] | None = None
+) -> Any:
     path = Path(path)
 
     if not path.exists():
@@ -48,7 +52,11 @@ def load_file(path: str | Path, file_type: Literal["yaml", "yml", "txt", "json"]
         raise Exception(f"[{final_file_type}] Failed to read '{path}': {err}") from err
 
 
-def save_file(path: str | Path, data: Any, file_type: Literal["yaml", "yml", "txt", "json"] | None = None) -> bool:
+def save_file(
+    path: str | Path,
+    data: Any,
+    file_type: Literal["yaml", "yml", "txt", "json"] | None = None,
+) -> bool:
     path = Path(path)
     if path.suffix == "":
         raise ValueError(f"Illegal file path: {path}")
@@ -74,32 +82,31 @@ def import_all_modules_from_package(package):
     Args:
         package (_type_): 包名
     """
-    for _, modname, _ in pkgutil.walk_packages(
-        package.__path__, package.__name__ + "."
-    ):
+    for _, modname, _ in pkgutil.walk_packages(package.__path__, package.__name__ + "."):
         importlib.import_module(modname)
 
 
-def stitched_images(images: list[Image.Image]) -> Image.Image | None:
-    if len(images) > 0:
-        width = 1024
+# def stitched_images(images: list[Image.Image]) -> Image.Image | None:
+#     if len(images) == 0:
+#         return None
 
-        new_images = []
-        for image in images:
-            w, h = image.size
-            new_images.append(image.resize((width, int(h * width / w)), Image.LANCZOS))
+#     width = 1024
+#     new_images = []
+#     for image in images:
+#         w, h = image.size
+#         new_images.append(image.resize((width, int(h * width / w)), Image.LANCZOS))
 
-        # width, _ = images[0].size
-        mode = new_images[0].mode
-        height = sum(i.size[1] for i in new_images)
+#     # width, _ = images[0].size
+#     mode = new_images[0].mode
+#     height = sum(i.size[1] for i in new_images)
 
-        result = Image.new(mode=mode, size=(width, height))
+#     result = Image.new(mode=mode, size=(width, height))
 
-        current_height = 0
-        for i, image in enumerate(new_images):
-            result.paste(image, box=(0, current_height))
-            current_height += image.size[1]
-        return result
+#     current_height = 0
+#     for image in new_images:
+#         result.paste(image, box=(0, current_height))
+#         current_height += image.size[1]
+#     return result
 
 
 def blue_image(image: Image.Image) -> Image.Image:
@@ -108,28 +115,14 @@ def blue_image(image: Image.Image) -> Image.Image:
     return image.filter(ImageFilter.BLUR)
 
 
-def get_data_from_message(message: list[dict], type: str) -> dict:
-    return next((item["data"] for item in message if item.get("type") == type), {})
+def get_data_from_message(message: list[dict], msg_type: str) -> dict:
+    return next((item["data"] for item in message if item.get("type") == msg_type), {})
 
 
 def text_simplification(text: str, max_len: int = 250) -> str:
-    text = re.sub(r' {2,}', ' ', text)
+    text = re.sub(r" {2,}", " ", text)
     text = text[-max_len:]
     return text
-
-
-def extract_json_from_markdown(text: str) -> list[dict | list]:
-    results = []
-    pattern = r"```json\s*([\s\S]*?)\s*```"
-    matches = re.findall(pattern, text)
-    for index, match in enumerate(matches):
-        try:
-            parsed = json.loads(match)
-            results.append(parsed)
-        except Exception as err:
-            logger.warning(f"文本段中第{index + 1}个JSON解析失败! 文本: {text}")
-            continue
-    return results
 
 
 def parse_text(text):
@@ -142,7 +135,7 @@ def parse_text(text):
             if count % 2 == 1:
                 lines[i] = f'<pre><code class="{items[-1]}">'
             else:
-                lines[i] = f"</code></pre>"
+                lines[i] = "</code></pre>"
         else:
             if i > 0:
                 if count % 2 == 1:
@@ -160,8 +153,8 @@ def strip_trailing_punct(line: str, lang: str) -> str:
     line = line.strip()
     if lang == "zh":
         return re.sub(r"[。！？~～]+$", "", line)
-    else:  # English
-        return line.rstrip(string.punctuation)
+    # English
+    return line.rstrip(string.punctuation)
 
 
 def split_sentence_zh(text: str, strip_punct: bool) -> list[str]:
@@ -180,7 +173,6 @@ def split_sentence_en(text: str, strip_punct: bool) -> list[str]:
     text = text.strip()
     lines = [line.strip() for line in text.split("\n") if line.strip()]
     return [strip_trailing_punct(line, "en") if strip_punct else line for line in lines]
-
 
 
 def normalize_date(user_input: str | None, default_today: bool = True) -> Any:

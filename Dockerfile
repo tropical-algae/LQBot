@@ -22,4 +22,4 @@ RUN pip install --upgrade pip && \
 
 RUN poetry install --only main
 
-ENTRYPOINT ["bash", "./scripts/launch.sh"]
+ENTRYPOINT ["poetry", "run", "poe", "run"]

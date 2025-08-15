@@ -2,10 +2,10 @@
 # utils.PLUGINS_DIR = "src"
 
 import json
-from lqbot.core.robot.bot import LQBot
-from lqbot.utils.logger import logger
-from lqbot.utils.config import settings
 
+from lqbot.core.robot.bot import LQBot
+from lqbot.utils.config import settings
+from lqbot.utils.logger import logger
 
 if __name__ == "__main__":
     logger.info(
@@ -18,8 +18,7 @@ if __name__ == "__main__":
         web_url=settings.BOT_WEBUI_URL,
         token=settings.BOT_TOKEN,
         ws_token=settings.BOT_WS_TOKEN,
-        web_token=settings.BOT_WEBUI_TOKEN
+        web_token=settings.BOT_WEBUI_TOKEN,
     )
-    
-    bot.run()
 
+    bot.run()

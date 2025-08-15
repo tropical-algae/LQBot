@@ -1,10 +1,10 @@
 import json
 import os
-from pathlib import Path
 import random
-from typing import Generator
-import requests
+from collections.abc import Generator
+from pathlib import Path
 
+import requests  # type: ignore
 from lqbot.base import ComponentBase
 from lqbot.utils.config import settings
 from lqbot.utils.decorator import require_active
@@ -12,7 +12,7 @@ from lqbot.utils.decorator import require_active
 
 class WallpaperProvider(ComponentBase):
     __component_name__ = settings.WALLPAPER_COMPONENT_NAME
-    
+
     def __init__(self, cache_root: str | Path, api_v1: str, api_v2: str):
         super().__init__(cache_root=cache_root, api_v1=api_v1, api_v2=api_v2)
         self.cache_root: Path = Path(cache_root)

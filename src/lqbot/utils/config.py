@@ -1,13 +1,14 @@
 from pathlib import Path
 from typing import Any
-from pydantic_settings import BaseSettings
+
 import yaml
+from pydantic_settings import BaseSettings
 
 
 class SysSetting(BaseSettings):
     # SysSetting 配置不可在yaml配置中修改
     PROJECT_NAME: str = "LQBot"
-    
+
     CACHE_ROOT: str = "./cache"
     CONFIG_ROOT: str = "./config_example"
     LOG_ROOT: str = "./log"
@@ -33,11 +34,12 @@ class NameSetting(BaseSettings):
     MINIO_COMPONENT_NAME: str = "minio"
     MYSQL_COMPONENT_NAME: str = "mysql"
     VECTOR_RETRIEVER_COMPONENT_NAME: str = "vector retriever"
-    
+
     # 注册的模型名（名称与LOCAL_PROMPT_ROOT下配置相对应）
     CHATTER_LLM_CONFIG_NAME: str = "bot_chatter"
     TOOLS_LLM_CONFIG_NAME: str = "bot_toolbox"
     RELATION_EXTOR_LLM_CONFIG_NAME: str = "relation_extractor"
+
 
 # class LogSetting(BaseSettings):
 #     DEBUG: bool = True
@@ -47,6 +49,7 @@ class NameSetting(BaseSettings):
 #     LOG_FILE_ENCODING: str = "utf-8"
 #     LOG_CONSOLE_OUTPUT: bool = False
 
+
 class ServiceSetting(BaseSettings):
     # Bot基本设置
     BOT_UID: str = ""
@@ -55,7 +58,7 @@ class ServiceSetting(BaseSettings):
     BOT_WS_TOKEN: str | None = ""
     BOT_WEBUI_URL: str = ""
     BOT_WEBUI_TOKEN: str | None = ""
-    
+
     # 大模型配置
     BASE_URL: str = ""
     API_KEY: str = ""
@@ -63,7 +66,7 @@ class ServiceSetting(BaseSettings):
     SYSTEM_PROMPT: str = ""
     # 对话宽限期，短时间连续对话时内允许用户忽略触发词与bot交互
     CHAT_GRACE_PERIOD: float = 15.0
-    
+
     HUOSHAN_VOICE_LLM_APPID: str = ""
     HUOSHAN_VOICE_LLM_TOKEN: str = ""
     HUOSHAN_VOICE_LLM_CLUSTER: str = ""
@@ -111,7 +114,7 @@ def load_config_yaml(path: Path) -> dict:
             f.write("")
         return {}
 
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
     return data or {}
 
@@ -120,9 +123,9 @@ def load_config() -> Setting:
     settings = Setting()
     extra_config_file = Path(settings.CONFIG_ROOT) / "config.yaml"
     extra_config = load_config_yaml(extra_config_file)
-    for key in SysSetting.model_json_schema().get("properties", {}).keys():
+    for key in SysSetting.model_json_schema().get("properties", {}):
         extra_config.pop(key, None)
-    
+
     return settings.model_copy(update=extra_config)
 
 

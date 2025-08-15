@@ -1,9 +1,4 @@
 from lqbot.utils.logger import logger
-from ncatbot.utils import get_log
-
-
-logger = get_log()
-
 
 
 class ComponentBase:
@@ -11,7 +6,7 @@ class ComponentBase:
 
     def __init__(self, *args, **kwargs) -> None:
         has_meaningful_args: bool = True
-        
+
         if (kwargs and not all(kwargs.values())) or (args and not all(args)):
             has_meaningful_args = False
         self.activate(has_meaningful_args)

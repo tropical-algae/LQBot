@@ -1,21 +1,23 @@
-from datetime import datetime
-from enum import Enum
 import random
 import re
+from datetime import datetime
+from enum import Enum
 from typing import Any, Optional, Union
-from pydantic import BaseModel, field_validator
+
 from ncatbot.core import BotAPI, GroupMessage
+from pydantic import BaseModel, field_validator
 
 from lqbot.utils.util import split_sentence_en, split_sentence_zh
 
 
 class MessageType(Enum):
-    TEXT: str = "text"
-    VOICE: str = "voice"
+    TEXT = "text"
+    VOICE = "voice"
+
 
 class MessageLanguage(Enum):
-    ZH: str = "zh"
-    EN: str = "en"
+    ZH = "zh"
+    EN = "en"
 
 
 class QUserData(BaseModel):
@@ -45,13 +47,15 @@ class QUserData(BaseModel):
                         nickname=quser["nickname"],
                         sex=quser["sex"],
                         age=quser["age"],
-                        card=quser["card"]
+                        card=quser["card"],
                     )
                     for quser in qusers["data"]
                 ]
 
         # 否则获取单个用户信息
-        quser: dict = await api.get_group_member_info(group_id=group_id, user_id=id, no_cache=False)
+        quser: dict = await api.get_group_member_info(
+            group_id=group_id, user_id=id, no_cache=False
+        )
         if quser and quser.get("status") == "ok":
             data = quser["data"]
             return cls(
@@ -59,7 +63,7 @@ class QUserData(BaseModel):
                 nickname=data["nickname"],
                 sex=data["sex"],
                 age=data["age"],
-                card=data["card"]
+                card=data["card"],
             )
 
         return None
@@ -76,15 +80,15 @@ class GroupMessageData(BaseModel):
     send_time: datetime
 
     def get_time(self) -> str:
-        return self.send_time.isoformat() # datetime.fromisoformat(self.send_time)
+        return self.send_time.isoformat()  # datetime.fromisoformat(self.send_time)
 
     @classmethod
     async def from_group_message(
         cls, data: GroupMessage, from_bot: bool, api: BotAPI | None = None
     ) -> "GroupMessageData":
-        def get_data_from_message(message: list[dict], type: str) -> dict:
+        def get_data_from_message(message: list[dict], msg_type: str) -> dict:
             return next(
-                (item["data"] for item in message if item.get("type") == type),
+                (item["data"] for item in message if item.get("type") == msg_type),
                 {},
             )
 
@@ -97,7 +101,9 @@ class GroupMessageData(BaseModel):
             api=api,
         )
         receiver_obj = (
-            await QUserData.from_group(id=int(receiver_id), group_id=data.group_id, api=api)
+            await QUserData.from_group(
+                id=int(receiver_id), group_id=data.group_id, api=api
+            )
             if (receiver_id := get_data_from_message(data.message, "at").get("qq", None))
             else None
         )
@@ -121,19 +127,19 @@ class AgentMessage(BaseModel):
     message_type: MessageType
     can_split: bool
     language: MessageLanguage | None = None
-    
-    @field_validator('language', mode='before')
-    def set_content_length(cls, v, values):
-        if v is None and 'content' in values:
-            content = values['content']
+
+    @field_validator("language", mode="before")
+    def set_content_length(cls, v, values):  # noqa: N805
+        if v is None and "content" in values:
+            content = values["content"]
             chinese_chars = re.findall(r"[\u4e00-\u9fff]", content)
             english_chars = re.findall(r"[a-zA-Z]", content)
 
             if len(chinese_chars) > len(english_chars):
                 return MessageLanguage.ZH
-            elif len(english_chars) > len(chinese_chars):
+            if len(english_chars) > len(chinese_chars):
                 return MessageLanguage.EN
-            
+
         return v
 
     def content_typing_times(self, split: bool | None = None) -> list[float]:
@@ -148,8 +154,7 @@ class AgentMessage(BaseModel):
     def content_splited(self) -> list[str]:
         if self.language == MessageLanguage.ZH:
             return split_sentence_zh(self.content, True)
-        else:
-            return split_sentence_en(self.content, True)
+        return split_sentence_en(self.content, True)
 
 
 class EntityObject(BaseModel):

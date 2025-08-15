@@ -1,18 +1,17 @@
 import os
-from datetime import datetime
 import random
+from datetime import datetime
+
 from ncatbot.core import BotAPI, BotClient, GroupMessage, PrivateMessage
 from PIL import Image
 
-from lqbot.utils.decorator import MessageCommands
-from lqbot.utils.models import GroupMessageData
-from lqbot.utils.util import blue_image
+from lqbot.core.robot.handlers.command import command_runner
 from lqbot.core.robot.handlers.sender import group_chat, send_group_message
 from lqbot.utils.config import settings
+from lqbot.utils.decorator import MessageCommands
 from lqbot.utils.logger import logger
-from lqbot.core.robot.handlers.command import command_runner
-from lqbot.utils.util import text_simplification
-
+from lqbot.utils.models import GroupMessageData
+from lqbot.utils.util import blue_image, text_simplification
 
 # @MessageCommands(command=f"{settings.BOT_COMMAND_GROUP_RANDOM_PIC}")
 # async def group_random_picture(
@@ -87,24 +86,30 @@ from lqbot.utils.util import text_simplification
 #     return status
 
 
-@MessageCommands(command=f"", need_at=True)
-async def group_at_trigger(bot: BotClient, message: GroupMessageData, **kwargs) -> bool:
+@MessageCommands(command="", need_at=True)
+async def group_at_trigger(bot: BotClient, message: GroupMessageData, **_) -> bool:
     logger.info(f"[GROUP {message.group_id}] 触发AT聊天")
     status = await group_chat(api=bot.api, message=message)
     return status
 
 
 @MessageCommands(command=settings.BOT_COMMAND_GROUP_CHAT)
-async def group_chat_trigger(bot: BotClient, message: GroupMessageData, **kwargs) -> bool:
+async def group_chat_trigger(bot: BotClient, message: GroupMessageData, **_) -> bool:
     logger.info(f"[GROUP {message.group_id}] 触发指名聊天")
     status = await group_chat(api=bot.api, message=message)
     return status
 
 
 @MessageCommands(command=settings.BOT_COMMAND_GROUP_COMMAND)
-async def group_command_trigger(bot: BotClient, message: GroupMessageData, params: str, **kwargs) -> bool:
+async def group_command_trigger(
+    bot: BotClient, message: GroupMessageData, params: str, **_
+) -> bool:
     logger.info(f"[GROUP {message.group_id}] 触发指令 -> {params}")
-    result = command_runner.execute_command(params)
-    result = text_simplification(result, 1000)
-    status = await send_group_message(api=bot.api, group_id=message.group_id)
-    return status
+    try:
+        result = command_runner.execute_command(params)
+        result = text_simplification(result, 1000)
+        await send_group_message(api=bot.api, group_id=message.group_id, text=result)
+        return True
+    except Exception as err:
+        logger.error(f"[GROUP {message.group_id}] 指令执行失败 {params} -> {err}")
+        return False
