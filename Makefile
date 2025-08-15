@@ -9,8 +9,9 @@ all: clean test install run deploy down
 install: generate_dot_env
 	pip install --upgrade pip
 	pip install poetry
-	poetry update
+	# poetry update
 	poetry install --with dev
+	pre-commit install
 	poetry shell
 
 activate:

@@ -11,11 +11,9 @@ RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
 
-COPY poetry.lock pyproject.toml poetry.toml launch.py .env ./
+COPY poetry.lock poetry.toml pyproject.toml poe_tasks.toml .env launch.py ./
 
 COPY ./src ./src
-
-COPY ./scripts ./scripts
 
 RUN pip install --upgrade pip && \
     pip install poetry==1.8.5

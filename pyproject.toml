@@ -16,7 +16,7 @@ url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 [tool.poetry.dependencies]
 python = "^3.10"
 uvicorn = "0.30.5"
-pydantic = {extras = ["email"], version = "^2.9.2"}
+pydantic = { extras = ["email"], version = "^2.9.2" }
 requests = "^2.32.0"
 loguru = "^0.7.0"
 joblib = "^1.2.0"
@@ -48,7 +48,7 @@ aiofiles = "^24.1.0"
 pytest = "^7.2"
 pytest-cov = "^5.0.0"
 pytest-ordering = "^0.6"
-black = {version = "^24.3", allow-prereleases = true}
+black = { version = "^24.3", allow-prereleases = true }
 autopep8 = "^2.0.0"
 ipdb = "^0.13.0"
 mypy = "^1.11.1"
@@ -58,6 +58,7 @@ types-pytz = "^2024.1.0.20240417"
 sqlacodegen = "3.0.0rc5"
 types-python-dateutil = "^2.9.0.20250809"
 types-aiofiles = "^24.1.0.20250809"
+pre-commit = "^4.3.0"
 
 
 [tool.poetry.group.aws]
