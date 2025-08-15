@@ -3,8 +3,8 @@
 
 # import pytest
 # from fastapi.testclient import TestClient
-# from qq_bot.app.db.schemas.schema_user import User
-# from qq_bot.main import app
+# from lqbot.app.db.schemas.schema_user import User
+# from lqbot.main import app
 # from pydantic import BaseModel
 
 
