@@ -141,17 +141,5 @@ agent = Agent(
     api_key=settings.API_KEY,
     api_base=settings.BASE_URL,
     default_model=settings.DEFAULT_MODEL,
-    system_prompt=settings.SYSTEM_PROMPT,
+    system_prompt=settings.AGENT_PROMPT,
 )
-
-# async def run():
-
-#     while True:
-#         user_msg = input("👤: ")
-#         if user_msg.strip().lower() in {"exit", "quit"}:
-#             break
-#         resp = await agent.run(session_id="aaa", message=user_msg)
-#         print("🤖:", resp.content)
-
-
-# asyncio.run(run())

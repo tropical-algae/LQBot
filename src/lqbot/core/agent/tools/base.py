@@ -1,7 +1,14 @@
 from typing import Any
 
 from llama_index.core.tools import FunctionTool, QueryEngineTool, ToolMetadata
+from pydantic import BaseModel
+
 from lqbot.utils.models import AgentMessage
+
+
+class InformationBase(BaseModel):
+    def summary(self) -> str:
+        return ""
 
 
 class ToolBase:

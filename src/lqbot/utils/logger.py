@@ -7,8 +7,6 @@ logger = get_log()
 # import os
 # import time
 
-# from uvicorn.config import LOGGING_CONFIG
-
 # from lqbot.utils.config import settings
 
 

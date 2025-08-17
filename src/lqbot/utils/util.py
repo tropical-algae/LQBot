@@ -1,3 +1,4 @@
+import asyncio
 import importlib
 import json
 import pkgutil
@@ -183,3 +184,10 @@ def normalize_date(user_input: str | None, default_today: bool = True) -> Any:
         return parsed.date()
     except (ValueError, TypeError):
         return dt_date.today() if default_today else None
+
+
+def handle_task_result(task: asyncio.Task):
+    try:
+        task.result()
+    except Exception as err:
+        logger.error(f"任务异常: {err}")

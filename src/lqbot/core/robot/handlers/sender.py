@@ -36,11 +36,13 @@ async def send_group_message(
 
 
 async def group_chat(
-    api: BotAPI, message: GroupMessageData, use_agent: bool = True
+    api: BotAPI, message: GroupMessageData, use_agent: bool = True, **kwargs
 ) -> bool:
     group_id = message.group_id
 
-    response: AgentMessage = await agent.run(str(group_id), message.content, use_agent)
+    response: AgentMessage = await agent.run(
+        str(group_id), message.content, use_agent, **kwargs
+    )
     if not response:
         return False
 

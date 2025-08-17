@@ -1,22 +1,25 @@
+# ruff: noqa: N815
+
 from datetime import date as dt_date
 from datetime import datetime
 from enum import Enum
 from typing import Annotated, Optional
 
 import httpx
-from lqbot.core.agent.tools.base import ToolBase
+
+from lqbot.core.agent.tools.base import InformationBase, ToolBase
 from lqbot.utils.config import settings
+from lqbot.utils.logger import logger
 from lqbot.utils.models import AgentMessage
 from lqbot.utils.util import normalize_date
-from pydantic import BaseModel
 
 
-class NewsSubject(str, Enum):
-    DISPATCHES = "前线讯息"
-    SITUATION = "战况局势"
+class SENewsType(str, Enum):
+    DISPATCHES = "讯息"
+    SITUATION = "战况"
 
 
-class Dispatches(BaseModel):
+class SEDispatches(InformationBase):
     id: int
     published: str
     type: int
@@ -24,6 +27,46 @@ class Dispatches(BaseModel):
 
     def summary(self) -> str:
         return f"{self.published} 讯息: {self.message}"
+
+
+class SEWarStatistics(InformationBase):
+    missionsWon: int
+    missionsLost: int
+    missionTime: int
+    terminidKills: int
+    automatonKills: int
+    illuminateKills: int
+    bulletsFired: int
+    bulletsHit: int
+    timePlayed: int
+    deaths: int
+    revives: int
+    friendlies: int
+    missionSuccessRate: int
+    accuracy: int
+    playerCount: int
+
+    def summary(self):
+        return (
+            f"截至目前，已完成任务 {self.missionsWon} 次，失败 {self.missionsLost} 次，"
+            f"成功率 {self.missionSuccessRate}% 。累计击杀终结虫 {self.terminidKills} 只，"
+            f"机器人 {self.automatonKills} 台，光能族 {self.illuminateKills} 名。友军误伤 {self.friendlies} 名。"
+            f"累计消耗弹药 {self.bulletsFired} 发，命中 {self.bulletsHit} 发，准确率 {self.accuracy}%。"
+            f"当前活跃的绝地遣兵人数 {self.playerCount} 人。"
+        )
+
+
+class SEWarSituation(InformationBase):
+    started: str
+    ended: str
+    now: str
+    clientVersion: str
+    factions: list[str]
+    impactMultiplier: float
+    statistics: SEWarStatistics
+
+    def summary(self):
+        return f"超级地球战报如下：\n{self.statistics.summary()}"
 
 
 class HelldiversAPIClient:
@@ -39,31 +82,53 @@ class HelldiversAPIClient:
         self.timeout = timeout
 
     async def get_dispatches(self, target_date: dt_date) -> str:
-        url = f"{self.BASE_URL}/dispatches"
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            response = await client.get(url, headers=self.headers)
-            response.raise_for_status()
+        url = f"{self.BASE_URL}/v2/dispatches"
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(url, headers=self.headers)
+                response.raise_for_status()
 
-            # 转换并查找
-            same_day_items = []
-            data = response.json()
-            for item in data:
-                pub_dt = datetime.fromisoformat(item["published"].replace("Z", "+00:00"))
-                if pub_dt.date() == target_date:
-                    same_day_items.append(Dispatches(**item))
+                # 转换并查找
+                same_day_items = []
+                data = response.json()
+                for item in data:
+                    pub_dt = datetime.fromisoformat(
+                        item["published"].replace("Z", "+00:00")
+                    )
+                    if pub_dt.date() == target_date:
+                        same_day_items.append(SEDispatches(**item))
 
-            if same_day_items:
-                result = same_day_items
-            else:
-                current_item = max(
-                    data,
-                    key=lambda x: datetime.fromisoformat(
-                        x["published"].replace("Z", "+00:00")
-                    ),
-                )
-                result = [Dispatches(**current_item)]
+                if same_day_items:
+                    result = same_day_items
+                else:
+                    current_item = max(
+                        data,
+                        key=lambda x: datetime.fromisoformat(
+                            x["published"].replace("Z", "+00:00")
+                        ),
+                    )
+                    result = [SEDispatches(**current_item)]
 
-            return "\n".join([msg.summary() for msg in result])
+                return "\n".join([msg.summary() for msg in result])
+        except Exception as err:
+            logger.error(f"绝地遣兵讯息获取错误: {err}")
+            return "不清楚超级地球的前线讯息"
+
+    async def get_situation(self) -> str:
+        url = f"{self.BASE_URL}/v1/war"
+
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(url, headers=self.headers)
+                response.raise_for_status()
+
+                data = response.json()
+
+                situation = SEWarSituation.model_validate(data)
+                return situation.summary()
+        except Exception as err:
+            logger.error(f"绝地遣兵战况获取错误: {err}")
+            return "不清楚超级地球的战况"
 
 
 hd_client = HelldiversAPIClient(
@@ -71,37 +136,31 @@ hd_client = HelldiversAPIClient(
 )
 
 
-# async def run():
-#     result = await hd_client.get_dispatches(normalize_date("2025/8/19"))
-#     print(result)
-
-# asyncio.run(run())
-
-
 class SuperEarthTool(ToolBase):
     __tool_name__ = "super_earth_tool"
     __tool_description__ = (
-        "若用户想了解“超级地球”的消息，请调用。注意，必须是有关“超级地球”的信息"
+        "工具作用：查询超级地球的消息\n"
+        "触发方式：当用户询问超级地球的状态、情况、消息、进展等时调用此工具\n"
     )
     __is_async__ = True
 
     @staticmethod
     async def a_tool_function(
-        news_type: Annotated[NewsSubject, "用户想了解的消息的主题"],
+        news_type: Annotated[SENewsType, "消息的类型"],
         date: Annotated[
-            Optional[str], "信息的日期，例如 2025-08-20。可以不提供日期"
+            str | None, "消息的日期，使用 ISO 格式，例如 2025-08-20。可以不提供日期"
         ] = None,
     ) -> str:
-        news_type = NewsSubject(news_type)
+        news_type = SENewsType(news_type)
         target_date: dt_date = normalize_date(date)
 
-        if news_type == NewsSubject.DISPATCHES:
+        if news_type == SENewsType.DISPATCHES:
             return await hd_client.get_dispatches(target_date=target_date)
 
-        if news_type == NewsSubject.SITUATION:
-            pass
+        if news_type == SENewsType.SITUATION:
+            return await hd_client.get_situation()
 
-        return "不太清楚呢"
+        return "不太清楚"
 
     @staticmethod
     def tool_post_processing_function(agent_message: AgentMessage) -> None:

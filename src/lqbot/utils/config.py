@@ -14,40 +14,14 @@ class SysSetting(BaseSettings):
     LOG_ROOT: str = "./log"
 
 
-class DBSetting(BaseSettings):
-    # vector db
-    VECTOR_STORE_URL: str = ""
-    VECTOR_STORE_TOKEN: str = ""
-
-    ENTITY_VECTOR_STORE_NAME: str = ""
-    RELATION_VECTOR_STORE_NAME: str = ""
-
-    VECTOR_SELECT_TOP_K: int = 4
-    VECTOR_SELECT_THRESHOLD: float = 0.5
-
-
 class NameSetting(BaseSettings):
-    TOOLBOX_COMPONENT_NAME: str = "toolbox"
     WALLPAPER_COMPONENT_NAME: str = "wallpaper provider"
-    NEWS_COMPONENT_NAME: str = "news collector"
     COMMAND_COMPONENT_NAME: str = "command manager"
-    MINIO_COMPONENT_NAME: str = "minio"
-    MYSQL_COMPONENT_NAME: str = "mysql"
-    VECTOR_RETRIEVER_COMPONENT_NAME: str = "vector retriever"
-
-    # 注册的模型名（名称与LOCAL_PROMPT_ROOT下配置相对应）
-    CHATTER_LLM_CONFIG_NAME: str = "bot_chatter"
-    TOOLS_LLM_CONFIG_NAME: str = "bot_toolbox"
-    RELATION_EXTOR_LLM_CONFIG_NAME: str = "relation_extractor"
 
 
-# class LogSetting(BaseSettings):
-#     DEBUG: bool = True
-#     LOG_NAME: str = "log.qqbot.record"
-#     LOG_FILE_LEVEL: str = "DEBUG"
-#     LOG_STREAM_LEVEL: str = "INFO"
-#     LOG_FILE_ENCODING: str = "utf-8"
-#     LOG_CONSOLE_OUTPUT: bool = False
+class PromptSetting(BaseSettings):
+    AGENT_PROMPT: str = ""
+    PLUGIN_SCHEDULE_AM_GREET_PROMPT: str = ""
 
 
 class ServiceSetting(BaseSettings):
@@ -63,7 +37,6 @@ class ServiceSetting(BaseSettings):
     BASE_URL: str = ""
     API_KEY: str = ""
     DEFAULT_MODEL: str = ""
-    SYSTEM_PROMPT: str = ""
     # 对话宽限期，短时间连续对话时内允许用户忽略触发词与bot交互
     CHAT_GRACE_PERIOD: float = 15.0
 
@@ -83,7 +56,9 @@ class ServiceSetting(BaseSettings):
     # 第三方资源收集
     WALLPAPER_API: str = "https://api.anosu.top/img"
     WALLPAPER_R18_API: str = "https://image.anosu.top/pixiv/json"
-    HELLDIVERS2_API: str = "https://api.helldivers2.dev/api/v2"
+    AMAP_WEATHER_API: str = "https://restapi.amap.com/v3/weather/weatherInfo"
+    AMAP_WEATHER_KEY: str = ""
+    HELLDIVERS2_API: str = "https://api.helldivers2.dev/api"
     HELLDIVERS2_CLIENT_NAME: str = "X-Super-Client"
     HELLDIVERS2_CONTACT: str = "X-Super-Contact"
 
@@ -100,7 +75,7 @@ class ServiceSetting(BaseSettings):
     }
 
 
-class Setting(SysSetting, DBSetting, NameSetting, ServiceSetting):
+class Setting(SysSetting, NameSetting, PromptSetting, ServiceSetting):
     class Config:
         env_file = ".env"
         case_sensitive = True
