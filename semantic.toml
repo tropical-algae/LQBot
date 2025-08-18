@@ -56,8 +56,8 @@ extensions = []
 autoescape = false
 
 [semantic_release.commit_author]
-# env = "GIT_COMMIT_AUTHOR"
-default = "github-release tropicalalgae@gmail.com"
+env = "GIT_COMMIT_AUTHOR"
+default = "github-actions <actions@github.com>"
 
 [semantic_release.commit_parser_options]
 major_tags = ["release"]
@@ -82,6 +82,6 @@ name = "origin"
 type = "github"
 token = { env = "GH_TOKEN" }
 ignore_token_for_push = false
-insecure = true
+insecure = false
 url = "https://github.com/tropical-algae/LQBot"
 # domain = "https://github.com"
