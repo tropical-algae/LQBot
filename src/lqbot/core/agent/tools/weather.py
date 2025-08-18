@@ -3,7 +3,7 @@ from typing import Annotated
 
 import httpx
 
-from lqbot.core.agent.tools.base import InformationBase, ToolBase
+from lqbot.core.agent.base import AgentBase, InformationBase, ToolBase
 from lqbot.utils.config import settings
 from lqbot.utils.logger import logger
 from lqbot.utils.models import AgentMessage
@@ -120,5 +120,8 @@ class WeatherTool(ToolBase):
         return info
 
     @staticmethod
-    def tool_post_processing_function(agent_message: AgentMessage) -> None:
+    def tool_post_processing_function(
+        agent: AgentBase, agent_message: AgentMessage
+    ) -> None:
+        _ = agent
         agent_message.can_split = False

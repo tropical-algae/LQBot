@@ -1,4 +1,4 @@
-from lqbot.core.agent.tools.base import ToolBase
+from lqbot.core.agent.base import AgentBase, ToolBase
 from lqbot.utils.models import AgentMessage, MessageType
 
 
@@ -16,6 +16,9 @@ class VoiceRequestTool(ToolBase):
         return "ok"
 
     @staticmethod
-    def tool_post_processing_function(agent_message: AgentMessage) -> None:
+    def tool_post_processing_function(
+        agent: AgentBase, agent_message: AgentMessage
+    ) -> None:
+        _ = agent
         agent_message.can_split = False
         agent_message.message_type = MessageType.VOICE

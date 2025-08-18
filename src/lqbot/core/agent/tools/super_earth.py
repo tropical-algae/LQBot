@@ -7,7 +7,7 @@ from typing import Annotated, Optional
 
 import httpx
 
-from lqbot.core.agent.tools.base import InformationBase, ToolBase
+from lqbot.core.agent.base import AgentBase, InformationBase, ToolBase
 from lqbot.utils.config import settings
 from lqbot.utils.logger import logger
 from lqbot.utils.models import AgentMessage
@@ -140,7 +140,7 @@ class SuperEarthTool(ToolBase):
     __tool_name__ = "super_earth_tool"
     __tool_description__ = (
         "工具作用：查询超级地球的消息\n"
-        "触发方式：当用户询问超级地球的状态、情况、消息、进展等时调用此工具\n"
+        "触发方式：当用户询问超级地球的状态、消息等情况时调用此工具\n"
     )
     __is_async__ = True
 
@@ -163,5 +163,8 @@ class SuperEarthTool(ToolBase):
         return "不太清楚"
 
     @staticmethod
-    def tool_post_processing_function(agent_message: AgentMessage) -> None:
+    def tool_post_processing_function(
+        agent: AgentBase, agent_message: AgentMessage
+    ) -> None:
+        _ = agent
         agent_message.can_split = False
