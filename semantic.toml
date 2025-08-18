@@ -70,7 +70,6 @@ allowed_tags = [
   "feat",
   "fix",
   "perf",
-  "style",
   "test",
   "release",
 ]

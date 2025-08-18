@@ -5,6 +5,7 @@ from collections.abc import Generator
 from pathlib import Path
 
 import requests  # type: ignore
+
 from lqbot.base import ComponentBase
 from lqbot.utils.config import settings
 from lqbot.utils.decorator import require_active
