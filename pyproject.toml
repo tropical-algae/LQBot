@@ -15,7 +15,6 @@ url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-uvicorn = "0.30.5"
 pydantic = { extras = ["email"], version = "^2.9.2" }
 requests = "^2.32.0"
 loguru = "^0.7.0"
@@ -68,6 +67,9 @@ optional = true
 [tool.poetry.group.aws.dependencies]
 mangum = "^0.17.0"
 
+
+[tool.poetry.group.release.dependencies]
+python-semantic-release = "^10.3.1"
 
 [[tool.poetry.packages]]
 include = "lqbot"
