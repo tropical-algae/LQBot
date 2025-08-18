@@ -1,8 +1,7 @@
 import time
 from collections import defaultdict
 
-from ncatbot.core import BotAPI, BotClient, GroupMessage, PrivateMessage
-from ncatbot.plugin import CompatibleEnrollment
+from ncatbot.core import BotClient, GroupMessage, PrivateMessage
 from ncatbot.utils.config import config
 
 from lqbot.core.robot.handlers.sender import group_chat

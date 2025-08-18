@@ -1,5 +1,5 @@
-import lqbot.core.agent.tools as agent_toolbox
 from llama_index.core.agent.workflow import AgentOutput, FunctionAgent, ReActAgent
+from llama_index.core.llms import CompletionResponse
 from llama_index.core.memory import (
     BaseMemoryBlock,
     FactExtractionMemoryBlock,
@@ -10,14 +10,16 @@ from llama_index.core.memory import (
 )
 from llama_index.core.workflow import Context
 from llama_index.llms.openai import OpenAI
-from lqbot.core.agent.tools.base import ToolBase
+
+import lqbot.core.agent.tools as agent_toolbox
+from lqbot.core.agent.base import AgentBase, ToolBase
 from lqbot.utils.config import settings
 from lqbot.utils.logger import logger
 from lqbot.utils.models import AgentMessage, MessageType
 from lqbot.utils.util import import_all_modules_from_package
 
 
-class Agent:
+class LQAgent(AgentBase):
     def __init__(
         self,
         api_key: str,
@@ -85,48 +87,64 @@ class Agent:
         return tools
 
     @staticmethod
-    def build_default_agent_message(session_id: str, output: AgentOutput) -> AgentMessage:
+    def _build_agent_message(
+        session_id: str, output: AgentOutput | CompletionResponse
+    ) -> AgentMessage:
+        if isinstance(output, AgentOutput):
+            id = output.raw.get("id", "chatcmpl-NONEID")  # type: ignore
+            content = output.response.content
+        else:
+            id = output.raw.id  # type: ignore
+            content = output.text
+
         return AgentMessage(
-            id=output.raw.get("id", "chatcmpl-NONEID"),  # type: ignore
+            id=id,
             session_id=session_id,
-            content=output.response.content,
+            content=content,
             message_type=MessageType.TEXT,
             can_split=True,
         )
 
-    async def run(self, session_id: str, message: str) -> AgentMessage:
+    async def _run_llm(self, session_id: str, message: str, **kwargs) -> AgentMessage:
+        response = await self.client.acomplete(prompt=message, **kwargs)
+        result = self._build_agent_message(session_id=session_id, output=response)
+        return result
+
+    async def _run_agent(self, session_id: str, message: str, **kwargs) -> AgentMessage:
         ctx = self._get_context(session_id)
         memory = self._get_memory(session_id)
         response: AgentOutput = await self.agent.run(
-            user_msg=message, memory=memory, context=ctx
+            user_msg=message, memory=memory, context=ctx, **kwargs
         )
 
-        result = self.build_default_agent_message(session_id=session_id, output=response)
+        result = self._build_agent_message(session_id=session_id, output=response)
         for tool_call in response.tool_calls:
             tool = self.tools.get(tool_call.tool_name)
             if tool is None:
                 continue
-            tool.tool_post_processing_function(result)
-            await tool.a_tool_post_processing_function(result)
+            tool.tool_post_processing_function(self, result)
+            await tool.a_tool_post_processing_function(self, result)
 
         return result
 
+    async def reset_memory(self, session_id: str) -> None:
+        memory: Memory | None = self.memories.get(session_id)
+        if memory:
+            await memory.areset()
 
-agent = Agent(
+    async def run(
+        self, session_id: str, message: str, use_agent: bool = True, **kwargs
+    ) -> AgentMessage:
+        return (
+            await self._run_agent(session_id=session_id, message=message, **kwargs)
+            if use_agent
+            else await self._run_llm(session_id=session_id, message=message, **kwargs)
+        )
+
+
+agent = LQAgent(
     api_key=settings.API_KEY,
     api_base=settings.BASE_URL,
     default_model=settings.DEFAULT_MODEL,
-    system_prompt=settings.SYSTEM_PROMPT,
+    system_prompt=settings.AGENT_PROMPT,
 )
-
-# async def run():
-
-#     while True:
-#         user_msg = input("👤: ")
-#         if user_msg.strip().lower() in {"exit", "quit"}:
-#             break
-#         resp = await agent.run(session_id="aaa", message=user_msg)
-#         print("🤖:", resp.content)
-
-
-# asyncio.run(run())

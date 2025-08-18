@@ -1,7 +1,28 @@
 from typing import Any
 
 from llama_index.core.tools import FunctionTool, QueryEngineTool, ToolMetadata
+from pydantic import BaseModel
+
 from lqbot.utils.models import AgentMessage
+
+
+class InformationBase(BaseModel):
+    def summary(self) -> str:
+        return ""
+
+
+class AgentBase:
+    async def reset_memory(self, session_id: str) -> None:  # type: ignore
+        pass
+
+    async def run(
+        self,
+        session_id: str,
+        message: str,
+        use_agent: bool = True,
+        **kwargs,  # type: ignore
+    ) -> Any:
+        pass
 
 
 class ToolBase:
@@ -18,11 +39,15 @@ class ToolBase:
         pass
 
     @staticmethod
-    def tool_post_processing_function(agent_message: AgentMessage) -> Any:
+    def tool_post_processing_function(
+        agent: AgentBase, agent_message: AgentMessage
+    ) -> Any:
         pass
 
     @staticmethod
-    async def a_tool_post_processing_function(agent_message: AgentMessage) -> Any:
+    async def a_tool_post_processing_function(
+        agent: AgentBase, agent_message: AgentMessage
+    ) -> Any:
         pass
 
     @classmethod
