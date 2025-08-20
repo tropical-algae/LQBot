@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lqbot"
-version = "0.1.0"
+version = "0.0.1"
 description = "Agent驱动的qq机器人"
 authors = ["tropical-algae <tropicalalgae@gmail.com>"]
 license = "MIT"
