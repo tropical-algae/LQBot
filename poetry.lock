@@ -1658,6 +1658,25 @@ url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 reference = "proxy-source"
 
 [[package]]
+name = "imgkit"
+version = "1.2.3"
+description = "Wkhtmltopdf python wrapper to convert html to image using the webkit rendering engine and qt"
+optional = false
+python-versions = "*"
+files = [
+    {file = "imgkit-1.2.3-py3-none-any.whl", hash = "sha256:cba8e3f67da6e0a5c87345a8b41605337851f9b9b75719500fa6810ecff84791"},
+    {file = "imgkit-1.2.3.tar.gz", hash = "sha256:c9ade93d0281277c898b983c959f11f0cc1cb4a5fed144560dfa4d273fb50cd8"},
+]
+
+[package.dependencies]
+six = "*"
+
+[package.source]
+type = "legacy"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+reference = "proxy-source"
+
+[[package]]
 name = "importlib-metadata"
 version = "8.6.1"
 description = "Read metadata from Python packages"
@@ -5578,4 +5597,4 @@ reference = "proxy-source"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "d8761daf4b8a9cc25237d9658b7d53e9f5c354dae358c0d5cbb10f465afe1726"
+content-hash = "0437bcf124e29137b63f56d8102c25345d64a32728a22a794075e667bfb5a562"
