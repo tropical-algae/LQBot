@@ -5578,4 +5578,4 @@ reference = "proxy-source"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "57c0034812a359a75f4e6fba2d38dfbac43eb65867aaa050e041736220b33f67"
+content-hash = "d8761daf4b8a9cc25237d9658b7d53e9f5c354dae358c0d5cbb10f465afe1726"

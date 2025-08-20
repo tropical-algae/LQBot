@@ -1,6 +1,3 @@
-# import ncatbot.utils as utils
-# utils.PLUGINS_DIR = "src"
-
 import json
 
 from lqbot.core.robot.bot import LQBot

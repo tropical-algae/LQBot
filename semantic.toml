@@ -60,9 +60,9 @@ env = "GIT_COMMIT_AUTHOR"
 default = "github-actions <actions@github.com>"
 
 [semantic_release.commit_parser_options]
-major_tags = ["release"]
+# major_tags = ["release"]
 minor_tags = ["update"]
-patch_tags = ["feat", "fix", "chore"]
+patch_tags = ["feat", "fix", "chore", "refactor"]
 allowed_tags = [
   "chore",
   "update",
@@ -72,6 +72,7 @@ allowed_tags = [
   "perf",
   "test",
   "release",
+  "refactor",
 ]
 default_bump_level = 0
 parse_squash_commits = true

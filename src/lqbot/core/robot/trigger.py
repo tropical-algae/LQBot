@@ -87,28 +87,28 @@ from lqbot.utils.util import blue_image, text_simplification
 
 
 @MessageCommands(command="", need_at=True)
-async def group_at_trigger(bot: BotClient, message: GroupMessageData, **_) -> bool:
+async def group_at_trigger(api: BotAPI, message: GroupMessageData, **_) -> bool:
     logger.info(f"[GROUP {message.group_id}] 触发AT聊天")
-    status = await group_chat(api=bot.api, message=message)
+    status = await group_chat(api=api, message=message)
     return status
 
 
 @MessageCommands(command=settings.BOT_COMMAND_GROUP_CHAT)
-async def group_chat_trigger(bot: BotClient, message: GroupMessageData, **_) -> bool:
+async def group_chat_trigger(api: BotAPI, message: GroupMessageData, **_) -> bool:
     logger.info(f"[GROUP {message.group_id}] 触发指名聊天")
-    status = await group_chat(api=bot.api, message=message)
+    status = await group_chat(api=api, message=message)
     return status
 
 
 @MessageCommands(command=settings.BOT_COMMAND_GROUP_COMMAND)
 async def group_command_trigger(
-    bot: BotClient, message: GroupMessageData, params: str, **_
+    api: BotAPI, message: GroupMessageData, params: str, **_
 ) -> bool:
     logger.info(f"[GROUP {message.group_id}] 触发指令 -> {params}")
     try:
         result = command_runner.execute_command(params)
         result = text_simplification(result, 1000)
-        await send_group_message(api=bot.api, group_id=message.group_id, text=result)
+        await send_group_message(api=api, group_id=message.group_id, text=result)
         return True
     except Exception as err:
         logger.error(f"[GROUP {message.group_id}] 指令执行失败 {params} -> {err}")
