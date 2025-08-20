@@ -7,7 +7,8 @@ from lqbot.utils.models import AgentMessage
 
 
 class InformationBase(BaseModel):
-    def summary(self) -> str:
+    def summary(self, **kwargs) -> str:
+        _ = kwargs
         return ""
 
 

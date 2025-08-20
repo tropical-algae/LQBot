@@ -28,7 +28,8 @@ class WeatherCastInfo(InformationBase):
     daytemp_float: str
     nighttemp_float: str
 
-    def summary(self) -> str:
+    def summary(self, **kwargs) -> str:
+        _ = kwargs
         return (
             f"{self.date}（week {self.week}）天气预报如下："
             f"白天{self.dayweather}，气温约{self.daytemp}摄氏度，吹{self.daywind}风，风力{self.daypower}级；"
@@ -43,7 +44,8 @@ class WeatherForecastInfo(InformationBase):
     reporttime: str
     casts: list[WeatherCastInfo]
 
-    def summary(self) -> str:
+    def summary(self, **kwargs) -> str:
+        _ = kwargs
         return (
             f"当前天气预报信息的更新时间为{self.reporttime}，以下是({self.province}){self.city}的天气预报：\n"
             + "\n".join(cast.summary() for cast in self.casts)
@@ -61,7 +63,8 @@ class WeatherLiveInfo(InformationBase):
     humidity: str
     reporttime: str
 
-    def summary(self):
+    def summary(self, **kwargs):
+        _ = kwargs
         return (
             f"当前时间{self.reporttime}，({self.province}){self.city}实时天气如下："
             f"{self.weather}，气温{self.temperature}摄氏度，湿度{self.humidity}%。"

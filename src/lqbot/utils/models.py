@@ -5,7 +5,7 @@ from enum import Enum
 from typing import Any, Optional, Union
 
 from ncatbot.core import BotAPI, GroupMessage
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from lqbot.utils.util import split_sentence_en, split_sentence_zh
 
@@ -120,13 +120,18 @@ class GroupMessageData(BaseModel):
         )
 
 
+class AgentResource(BaseModel):
+    type: MessageType
+    content: str
+
+
 class AgentMessage(BaseModel):
     id: str
     session_id: str
     content: str
-    message_type: MessageType
     can_split: bool
     language: MessageLanguage | None = None
+    extras: list[AgentResource] = Field(default_factory=list)
 
     @field_validator("language", mode="before")
     def set_content_length(cls, v, values):  # noqa: N805

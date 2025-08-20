@@ -9,7 +9,7 @@ from ncatbot.core import GroupMessage
 from ncatbot.plugin import BasePlugin, CompatibleEnrollment
 
 from lqbot import __version__ as __version__
-from lqbot.core.robot.handlers.sender import group_chat, send_group_message
+from lqbot.core.robot.handlers.sender import group_chat
 from lqbot.core.robot.trigger import (
     group_at_trigger,
     group_chat_trigger,

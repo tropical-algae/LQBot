@@ -3,11 +3,11 @@ import random
 from datetime import datetime, timedelta
 from typing import ClassVar
 
-from ncatbot.core import GroupMessage
 from ncatbot.plugin import BasePlugin, CompatibleEnrollment
 
 from lqbot import __version__ as __version__
-from lqbot.core.robot.handlers.sender import group_chat, send_group_message
+from lqbot.core.agent.tools.schedule import ScheduleTool
+from lqbot.core.robot.handlers.sender import group_chat
 from lqbot.utils.config import settings
 from lqbot.utils.logger import logger
 from lqbot.utils.models import GroupMessageData, QUserData
@@ -23,7 +23,8 @@ class SchedulePlugin(BasePlugin):
     subscribed_groups: ClassVar[list[int]] = []
 
     async def on_load(self):
-        # 插件加载时执行的操作, 可缺省
+        # 注册到工具
+        ScheduleTool.__schedule_plugin__ = self
         logger.info(f"{self.name}({self.version}) 插件已加载")
 
         self.schedules: dict

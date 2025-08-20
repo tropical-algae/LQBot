@@ -25,7 +25,8 @@ class SEDispatches(InformationBase):
     type: int
     message: str
 
-    def summary(self) -> str:
+    def summary(self, **kwargs) -> str:
+        _ = kwargs
         return f"{self.published} 讯息: {self.message}"
 
 
@@ -46,7 +47,8 @@ class SEWarStatistics(InformationBase):
     accuracy: int
     playerCount: int
 
-    def summary(self):
+    def summary(self, **kwargs) -> str:
+        _ = kwargs
         return (
             f"截至目前，已完成任务 {self.missionsWon} 次，失败 {self.missionsLost} 次，"
             f"成功率 {self.missionSuccessRate}% 。累计击杀终结虫 {self.terminidKills} 只，"
@@ -65,7 +67,8 @@ class SEWarSituation(InformationBase):
     impactMultiplier: float
     statistics: SEWarStatistics
 
-    def summary(self):
+    def summary(self, **kwargs) -> str:
+        _ = kwargs
         return f"超级地球战报如下：\n{self.statistics.summary()}"
 
 

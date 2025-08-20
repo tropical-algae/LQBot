@@ -118,7 +118,6 @@ class LQAgent(AgentBase):
             id=id,
             session_id=session_id,
             content=content,
-            message_type=MessageType.TEXT,
             can_split=True,
         )
 
