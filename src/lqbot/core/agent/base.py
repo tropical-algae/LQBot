@@ -29,6 +29,7 @@ class ToolBase:
     __tool_name__: str = ""
     __tool_description__: str = ""
     __is_async__: bool = False
+    __activate__: bool = True
 
     @staticmethod
     def tool_function(*args, **kwargs) -> Any:

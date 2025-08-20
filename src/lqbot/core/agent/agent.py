@@ -1,3 +1,5 @@
+import uuid
+
 from llama_index.core.agent.workflow import AgentOutput, FunctionAgent, ReActAgent
 from llama_index.core.llms import CompletionResponse
 from llama_index.core.memory import (
@@ -53,9 +55,11 @@ class LQAgent(AgentBase):
                 priority=1,
             ),
         ]
-        self.tools: dict[str, type[ToolBase]] = self.build_toolbox()
+        self.tools: dict[str, type[ToolBase]] = {}
         self.context: dict[str, Context] = {}
         self.memories: dict[str, Memory] = {}
+        self._load_tools()
+
         self.agent = FunctionAgent(
             system_prompt=system_prompt,
             tools=[tool.get_tool() for tool in self.tools.values()],
@@ -67,7 +71,7 @@ class LQAgent(AgentBase):
             session_id,
             Memory.from_defaults(
                 session_id=session_id,
-                token_limit=1000,
+                token_limit=1200,
                 chat_history_token_ratio=0.7,
                 token_flush_size=800,
                 memory_blocks=self.blocks,
@@ -78,24 +82,37 @@ class LQAgent(AgentBase):
     def _get_context(self, session_id: str) -> Context:
         return self.context.setdefault(session_id, Context(self.agent))
 
-    def build_toolbox(self) -> dict[str, type[ToolBase]]:
+    def _load_tools(self) -> None:
         import_all_modules_from_package(agent_toolbox)
         toolbox = ToolBase.__subclasses__()
 
-        tools = {tool.__tool_name__: tool for tool in toolbox}
-        logger.info(f"加载工具集: {list(tools.keys())}")
-        return tools
+        tools: dict[str, type[ToolBase]] = {}
+        unactivated_tools: list[str] = []
+        for tool in toolbox:
+            if tool.__activate__:
+                tools[tool.__tool_name__] = tool
+            else:
+                unactivated_tools.append(tool.__tool_name__)
+
+        self.tools = tools
+        logger.info(f"已加载工具: {list(self.tools.keys())}")
+        logger.info(f"未加载的工具: {unactivated_tools}")
 
     @staticmethod
     def _build_agent_message(
         session_id: str, output: AgentOutput | CompletionResponse
     ) -> AgentMessage:
-        if isinstance(output, AgentOutput):
-            id = output.raw.get("id", "chatcmpl-NONEID")  # type: ignore
-            content = output.response.content
-        else:
-            id = output.raw.id  # type: ignore
-            content = output.text
+        try:
+            id = (
+                output.raw.get("id", f"chatcmpl-{uuid.uuid4().hex}")  # type: ignore
+                if isinstance(output, AgentOutput)
+                else output.raw.id  # type: ignore
+            )
+        except Exception:
+            id = f"chatcmpl-{uuid.uuid4().hex}"
+        content = (
+            output.response.content if isinstance(output, AgentOutput) else output.text
+        )
 
         return AgentMessage(
             id=id,
