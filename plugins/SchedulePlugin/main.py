@@ -6,7 +6,6 @@ from typing import ClassVar
 from ncatbot.plugin import BasePlugin, CompatibleEnrollment
 
 from lqbot import __version__ as __version__
-from lqbot.core.agent.tools.schedule import ScheduleTool
 from lqbot.core.robot.handlers.sender import group_chat
 from lqbot.utils.config import settings
 from lqbot.utils.logger import logger
@@ -24,7 +23,6 @@ class SchedulePlugin(BasePlugin):
 
     async def on_load(self):
         # 注册到工具
-        ScheduleTool.__schedule_plugin__ = self
         logger.info(f"{self.name}({self.version}) 插件已加载")
 
         self.schedules: dict
@@ -32,7 +30,6 @@ class SchedulePlugin(BasePlugin):
             job_func=self.refresh_daily_greet,
             name="每日定时任务规划",
             interval="00:01",
-            # args=("早八人", ),
         )
 
     @staticmethod

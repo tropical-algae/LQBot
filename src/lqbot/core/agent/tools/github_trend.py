@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from lqbot.core.agent.base import AgentBase, InformationBase, ToolBase
 from lqbot.utils.config import settings
+from lqbot.utils.decorator import exception_handling
 from lqbot.utils.logger import logger
 from lqbot.utils.models import AgentMessage, AgentResource, MessageType
 
@@ -28,7 +29,7 @@ IMGKIT_OPTIONS = {
     "enable-local-file-access": None,
 }
 
-url_queue = asyncio.Queue()
+url_queue: asyncio.Queue = asyncio.Queue()
 
 
 def md_link(url: str) -> str:
@@ -61,7 +62,8 @@ class Contributor(InformationBase):
     name: str
     url: str
 
-    def summary(self, show_avatar: bool) -> str:
+    def summary(self, **kwargs) -> str:
+        show_avatar = kwargs.get("show_avatar", False)
         return (
             f"![]({self.avatar})"
             if show_avatar
@@ -80,9 +82,10 @@ class GithubRepoItem(InformationBase):
     addStars: str
     contributors: list[Contributor]
 
-    def summary(self, show_avatar: bool) -> str:
+    def summary(self, **kwargs) -> str:
+        show_avatar = kwargs.get("show_avatar", False)
         contributors = "\n".join(
-            contrb.summary(show_avatar) for contrb in self.contributors
+            contrb.summary(show_avatar=show_avatar) for contrb in self.contributors
         )
         return f"""## Repository: {self.title} <span style="color: {self.languageColor};">({self.language})</span>
 
@@ -102,7 +105,8 @@ class GithubTrend(InformationBase):
     pubDate: str
     items: list[GithubRepoItem]
 
-    def summary(self, show_avatar: bool) -> str:
+    def summary(self, **kwargs) -> str:
+        show_avatar = kwargs.get("show_avatar", False)
         title = f"""# {self.title}
 
 {self.description}
@@ -117,7 +121,7 @@ LINK: {md_link(self.link)}
 
         content = """
 <hr style="border: none; height: 0; background: transparent;">
-""".join(item.summary(show_avatar) for item in self.items)
+""".join(item.summary(show_avatar=show_avatar) for item in self.items)
         return title + content
 
 
@@ -134,13 +138,14 @@ async def get_trend_info(url: str) -> GithubTrend | None:
         return None
 
 
+@exception_handling
 async def gen_trend_poster(url: str, session_id: str | None = None) -> str | None:
     type_name: str = MessageType.IMAGE.value
     trend: GithubTrend | None = await get_trend_info(url)
     date = datetime.date(datetime.now()).isoformat()
     filepath = IMGKIT_CACHE_ROOT / f"{type_name}-{date}-{uuid.uuid4().hex[:8]}.png"
     if trend:
-        trend_md = trend.summary(True)
+        trend_md = trend.summary(show_avatar=True)
         trend_html = markdown.markdown(trend_md)
         imgkit.from_string(trend_html, filepath, options=IMGKIT_OPTIONS, css=IMGKIT_CSS)
         logger.info(f"[GROUP {session_id or 'Unknown'}] 生成 {type_name} {filepath}")
@@ -155,6 +160,7 @@ class GithubTrendTool(ToolBase):
     __is_async__ = True
 
     @staticmethod
+    @exception_handling(default_return="github趋势参数分析失败")
     async def a_tool_function(
         language_type: Annotated[CodeLanguageType, "编程语言类型。若未指定则默认是all"],
         period: Annotated[RankingPeriod, "趋势的统计周期。若未指定则默认是daily"],
@@ -176,6 +182,6 @@ class GithubTrendTool(ToolBase):
             AgentResource(
                 type=MessageType.IMAGE,
                 func=gen_trend_poster,
-                kwargs={"url": url, "session_id": agent_message.session_id},
+                params={"url": url, "session_id": agent_message.session_id},
             )
         )

@@ -5086,6 +5086,22 @@ url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 reference = "proxy-source"
 
 [[package]]
+name = "types-markdown"
+version = "3.8.0.20250809"
+description = "Typing stubs for Markdown"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "types_markdown-3.8.0.20250809-py3-none-any.whl", hash = "sha256:3f34a38c2259a3158e90ab0cb058cd8f4fdd3d75e2a0b335cb57f25dc2bc77d3"},
+    {file = "types_markdown-3.8.0.20250809.tar.gz", hash = "sha256:fa619e735878a244332a4bbe16bcfc44e49ff6264c2696056278f0642cdfa223"},
+]
+
+[package.source]
+type = "legacy"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+reference = "proxy-source"
+
+[[package]]
 name = "types-python-dateutil"
 version = "2.9.0.20250809"
 description = "Typing stubs for python-dateutil"
@@ -5597,4 +5613,4 @@ reference = "proxy-source"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "0437bcf124e29137b63f56d8102c25345d64a32728a22a794075e667bfb5a562"
+content-hash = "32ab6ff253139b8e02ed22d72b7b0dbe60c5009ef8b0ee42cedfb9d80f4155d2"

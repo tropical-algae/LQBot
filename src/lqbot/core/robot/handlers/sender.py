@@ -27,7 +27,7 @@ async def send_group_message(
     else:
         logger.info("消息发送失败：未知的数据类型")
         return
-    logger.info(f"[GROUP {group_id}][机器人]:\t({text_type.value}) {text_abs}")
+    logger.info(f"[GROUP {group_id}][机器人]: ({text_type.value}) {text_abs}")
 
 
 async def group_chat(
@@ -35,10 +35,11 @@ async def group_chat(
 ) -> bool:
     # agent / llm 推理
     group_id = message.group_id
-    response: AgentMessage = await agent.run(
+    response: AgentMessage | None = await agent.run(
         str(group_id), message.content, use_agent, **kwargs
     )
     if not response:
+        await send_group_message(api, group_id, "oops，好像出现了一点问题")
         return False
 
     # 分段发送文本

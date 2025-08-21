@@ -55,8 +55,8 @@ class GroupBotPlugin(BasePlugin):
         group_id = user_msg.group_id
         sender_id = user_msg.sender.id
         sender_name = user_msg.sender.nickname
-        msg_abs = f"{user_msg.content[:7]}..."
-        logger.info(f"[GROUP {group_id}][{sender_name}]:\t{msg_abs}")
+        msg_abs = f"{user_msg.content[:14]}..."
+        logger.info(f"[GROUP {group_id}][{sender_name}]: {msg_abs}")
 
         for handler in self.group_command:
             if await handler(api=self.api, message=user_msg, origin_msg=msg):

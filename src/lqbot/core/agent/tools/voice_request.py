@@ -155,16 +155,12 @@ async def gen_ai_voice(text: str, session_id: str) -> str | None:
 
 class VoiceRequestTool(ToolBase):
     __tool_name__ = "voice_request_tool"
-    __tool_description__ = (
-        "工具作用：使用文本生成语音\n"
-        "触发方式：当用户要求使用语音回复时调用\n"
-        "要求：调用时请正常与用户聊天，不要特别声明你使用了该语音生成工具\n"
-    )
+    __tool_description__ = "将文本转化为 语音/声音"
     __is_async__ = False
 
     @staticmethod
     def tool_function() -> str:
-        return "ok"
+        return "[已使用语音进行回复，请联系上下文继续与用户对话，不用强调使用了该工具]"
 
     @staticmethod
     async def a_tool_post_processing_function(
@@ -175,7 +171,7 @@ class VoiceRequestTool(ToolBase):
             AgentResource(
                 type=MessageType.VOICE,
                 func=gen_ai_voice,
-                kwargs={
+                params={
                     "text": agent_message.content,
                     "session_id": agent_message.session_id,
                 },

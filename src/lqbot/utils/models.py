@@ -4,7 +4,7 @@ import re
 from collections.abc import Awaitable, Callable
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, cast
 
 from ncatbot.core import BotAPI, GroupMessage
 from pydantic import BaseModel, Field, field_validator
@@ -126,12 +126,12 @@ class GroupMessageData(BaseModel):
 class AgentResource(BaseModel):
     type: MessageType
     func: Callable[..., str | None] | Callable[..., Awaitable[str | None]]
-    kwargs: dict = Field(default_factory=dict)
+    params: dict = Field(default_factory=dict)
 
     async def get_content(self) -> str | None:
         if inspect.iscoroutinefunction(self.func):
-            return await self.func(**self.kwargs)
-        return self.func(**self.kwargs)
+            return await self.func(**self.params)
+        return self.func(**self.params)  # type: ignore
 
 
 class AgentMessage(BaseModel):
