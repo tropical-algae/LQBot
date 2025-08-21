@@ -4,7 +4,6 @@ import random
 from ncatbot.core import BotAPI
 
 from lqbot.core.agent.agent import agent
-from lqbot.core.robot.handlers.voice import voice_query
 from lqbot.utils.config import settings
 from lqbot.utils.logger import logger
 from lqbot.utils.models import AgentMessage, GroupMessageData, MessageType, QUserData
@@ -23,6 +22,8 @@ async def send_group_message(
         await api.post_group_msg(group_id=group_id, text=text, **kwargs)
     elif text_type == MessageType.VOICE:
         await api.post_group_file(group_id=group_id, record=text, **kwargs)
+    elif text_type == MessageType.IMAGE:
+        await api.post_group_file(group_id=group_id, image=text, **kwargs)
     else:
         logger.info("消息发送失败：未知的数据类型")
         return
@@ -61,7 +62,11 @@ async def group_chat(
 
     # 顺序发送附属资源
     for res in response.extras:
-        await send_group_message(api, group_id, res.content, text_type=res.type)
-        await asyncio.sleep(random.random())
+        res_content: str | None = await res.get_content()
+        res_type = res.type
+        if not res_content:
+            res_content = f"[{res.type.value}] 资源获取失败"
+            res_type = MessageType.TEXT
+        await send_group_message(api, group_id, res_content, text_type=res_type)
 
     return True

@@ -1,5 +1,7 @@
+import inspect
 import random
 import re
+from collections.abc import Awaitable, Callable
 from datetime import datetime
 from enum import Enum
 from typing import Any, Optional, Union
@@ -13,6 +15,7 @@ from lqbot.utils.util import split_sentence_en, split_sentence_zh
 class MessageType(Enum):
     TEXT = "text"
     VOICE = "voice"
+    IMAGE = "image"
 
 
 class MessageLanguage(Enum):
@@ -122,7 +125,13 @@ class GroupMessageData(BaseModel):
 
 class AgentResource(BaseModel):
     type: MessageType
-    content: str
+    func: Callable[..., str | None] | Callable[..., Awaitable[str | None]]
+    kwargs: dict = Field(default_factory=dict)
+
+    async def get_content(self) -> str | None:
+        if inspect.iscoroutinefunction(self.func):
+            return await self.func(**self.kwargs)
+        return self.func(**self.kwargs)
 
 
 class AgentMessage(BaseModel):

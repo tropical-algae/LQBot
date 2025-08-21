@@ -12,8 +12,8 @@ from lqbot.utils.config import settings
 from lqbot.utils.logger import logger
 from lqbot.utils.models import AgentMessage, AgentResource, MessageType
 
-TTS_ROOT = Path(settings.CACHE_ROOT) / "tts"
-TTS_ROOT.mkdir(parents=True, exist_ok=True)
+TTS_CACHE_ROOT = Path(settings.CACHE_ROOT) / "tts"
+TTS_CACHE_ROOT.mkdir(parents=True, exist_ok=True)
 
 
 MESSAGE_TYPES = {
@@ -141,6 +141,18 @@ async def parse_response(res, file):
     return True
 
 
+async def gen_ai_voice(text: str, session_id: str) -> str | None:
+    type_name: str = MessageType.VOICE.value
+    filepath = TTS_CACHE_ROOT / f"{type_name}-{uuid.uuid4().hex}.mp3"
+
+    await voice_query(file=str(filepath), text=text)
+    if filepath.exists():
+        logger.info(f"[GROUP {session_id or 'Unknown'}] 生成 {type_name} {filepath}")
+        return str(filepath)
+    logger.error(f"[GROUP {session_id or 'Unknown'}] {type_name} {filepath}生成失败")
+    return None
+
+
 class VoiceRequestTool(ToolBase):
     __tool_name__ = "voice_request_tool"
     __tool_description__ = (
@@ -159,13 +171,13 @@ class VoiceRequestTool(ToolBase):
         agent: AgentBase, agent_message: AgentMessage
     ) -> None:
         _ = agent
-        filepath = TTS_ROOT / f"voice_{uuid.uuid4().hex}.mp3"
-
-        await voice_query(file=str(filepath), text=agent_message.content)
-        if filepath.exists():
-            logger.info(f"[GROUP {agent_message.session_id}] 生成音频{filepath}")
-            agent_message.extras.append(
-                AgentResource(type=MessageType.VOICE, content=str(filepath))
+        agent_message.extras.append(
+            AgentResource(
+                type=MessageType.VOICE,
+                func=gen_ai_voice,
+                kwargs={
+                    "text": agent_message.content,
+                    "session_id": agent_message.session_id,
+                },
             )
-        else:
-            logger.error(f"[GROUP {agent_message.session_id}] 音频{filepath}生成失败")
+        )
