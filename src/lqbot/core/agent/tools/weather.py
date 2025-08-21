@@ -104,9 +104,7 @@ async def get_weather_info(location: str, weather_type: WeatherType) -> str:
 
 class WeatherTool(ToolBase):
     __tool_name__ = "weather_tool"
-    __tool_description__ = (
-        "根据参数获取某地区 今日/未来 的天气信息。必须提供 info_type/location"
-    )
+    __tool_description__ = "根据参数获取某地区 今日/未来 的天气信息"
     __is_async__ = True
 
     @staticmethod

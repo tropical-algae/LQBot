@@ -11,6 +11,10 @@ class MemoryResetTool(ToolBase):
     __is_async__ = False
 
     @staticmethod
+    def tool_function() -> str:
+        return "已清理历史记忆"
+
+    @staticmethod
     async def a_tool_post_processing_function(
         agent: AgentBase, agent_message: AgentMessage
     ) -> None:
