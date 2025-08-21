@@ -161,34 +161,6 @@ def tools_logger(cls):
     return cls
 
 
-# def sql_session(func: Callable):
-#     """SQL连接装饰器，兼容同步和异步方法
-
-#     Args:
-#         func (Callable):
-
-#     Returns:
-#         _type_:
-#     """
-#     if inspect.iscoroutinefunction(func):
-
-#         @functools.wraps(func)
-#         async def async_wrapper(*args, **kwargs):
-#             with LocalSession() as db:
-#                 kwargs["db"] = db
-#                 return await func(*args, **kwargs)
-
-#         return async_wrapper  # type: ignore
-#     else:
-
-#         @functools.wraps(func)
-#         def sync_wrapper(*args, **kwargs):
-#             with LocalSession() as db:
-#                 return func(*args, db=db, **kwargs)
-
-#         return sync_wrapper
-
-
 def require_active(method: Callable | None = None, *, forcible: bool = False):
     """Decorator to check if self.active is True, unless forcible=True. Supports sync and async methods."""
 
@@ -223,23 +195,45 @@ def require_active(method: Callable | None = None, *, forcible: bool = False):
     return decorator
 
 
-# def require_active(method: Callable = None, *, forcible: bool = False):
-#     """Decorator to check if self.active is True, unless forcible=True"""
+def exception_handling(func: Callable | None = None, *, default_return: Any = None):
+    """异常捕获装饰器，可用于函数/类方法，支持同步和异步函数
 
-#     def decorator(func: Callable):
-#         @functools.wraps(func)
-#         def wrapper(self, *args, **kwargs) -> Any:
-#             active = getattr(self, "active", True)
-#             component = getattr(self, "__component_name__", None) or func.__name__
-#             if active:
-#                 return func(self, *args, **kwargs)
-#             if forcible:
-#                 raise RuntimeError(f"Function {component} not activated")
-#             return None
+    Args:
+        func (Callable | None, optional): _description_. Defaults to None.
+        default_return (Any, optional): _description_. Defaults to None.
+    """
 
-#         return wrapper
+    def decorator(inner_func: Callable):
+        is_coroutine = asyncio.iscoroutinefunction(inner_func)
 
-#     # Detect if used as @require_active or @require_active()
-#     if method is not None and callable(method):
-#         return decorator(method)  # used as @require_active
-#     return decorator  # used as @require_active(forcible=True)
+        @functools.wraps(inner_func)
+        async def async_wrapper(*args, **kwargs):
+            is_method = len(args) > 0 and inspect.isclass(type(args[0]))
+            self = args[0] if is_method else None
+            func_path = (
+                f"{type(self).__name__ + '.' if self else ''}{inner_func.__name__}"
+            )
+            try:
+                return await inner_func(*args, **kwargs)
+            except Exception as err:
+                logger.error(f"{func_path} 执行失败：{err}")
+                return default_return
+
+        @functools.wraps(inner_func)
+        def sync_wrapper(*args, **kwargs):
+            is_method = len(args) > 0 and inspect.isclass(type(args[0]))
+            self = args[0] if is_method else None
+            func_path = (
+                f"{type(self).__name__ + '.' if self else ''}{inner_func.__name__}"
+            )
+            try:
+                return inner_func(*args, **kwargs)
+            except Exception as err:
+                logger.error(f"{func_path} 执行失败：{err}")
+                return default_return
+
+        return async_wrapper if is_coroutine else sync_wrapper
+
+    if callable(func):
+        return decorator(func)
+    return decorator

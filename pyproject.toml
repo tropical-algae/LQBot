@@ -23,7 +23,6 @@ poethepoet = "^0.27.0"
 pydantic-settings = "^2.4.0"
 colorlog = "^6.8.2"
 pytz = "^2024.1"
-openai = "^1.38.0"
 pyyaml = "^6.0.1"
 pymysql = "^1.1.1"
 sqlalchemy = "^2.0.32"
@@ -37,10 +36,12 @@ jmcomic = "^2.5.32"
 minio = "^7.2.15"
 pillow = "^11.1.0"
 ncatbot = "^3.5.11"
+openai = "1.99.9"
 llama-index = "0.12.15"
 llama-index-core = "0.12.52.post1"
 llama-index-llms-openai = "0.3.44"
 aiofiles = "^24.1.0"
+imgkit = "^1.2.3"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -58,6 +59,7 @@ sqlacodegen = "3.0.0rc5"
 types-python-dateutil = "^2.9.0.20250809"
 types-aiofiles = "^24.1.0.20250809"
 pre-commit = "^4.3.0"
+types-markdown = "^3.8.0.20250809"
 
 
 [tool.poetry.group.aws]

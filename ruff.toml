@@ -81,6 +81,7 @@ ignore = [
   "PTH118",
   "PTH123",
   "RUF003", # chinese punctuation
+  "RUF002", # chinese punctuation
 ]
 
 [lint.flake8-builtins]

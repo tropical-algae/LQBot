@@ -1658,6 +1658,25 @@ url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 reference = "proxy-source"
 
 [[package]]
+name = "imgkit"
+version = "1.2.3"
+description = "Wkhtmltopdf python wrapper to convert html to image using the webkit rendering engine and qt"
+optional = false
+python-versions = "*"
+files = [
+    {file = "imgkit-1.2.3-py3-none-any.whl", hash = "sha256:cba8e3f67da6e0a5c87345a8b41605337851f9b9b75719500fa6810ecff84791"},
+    {file = "imgkit-1.2.3.tar.gz", hash = "sha256:c9ade93d0281277c898b983c959f11f0cc1cb4a5fed144560dfa4d273fb50cd8"},
+]
+
+[package.dependencies]
+six = "*"
+
+[package.source]
+type = "legacy"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+reference = "proxy-source"
+
+[[package]]
 name = "importlib-metadata"
 version = "8.6.1"
 description = "Read metadata from Python packages"
@@ -5067,6 +5086,22 @@ url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 reference = "proxy-source"
 
 [[package]]
+name = "types-markdown"
+version = "3.8.0.20250809"
+description = "Typing stubs for Markdown"
+optional = false
+python-versions = ">=3.9"
+files = [
+    {file = "types_markdown-3.8.0.20250809-py3-none-any.whl", hash = "sha256:3f34a38c2259a3158e90ab0cb058cd8f4fdd3d75e2a0b335cb57f25dc2bc77d3"},
+    {file = "types_markdown-3.8.0.20250809.tar.gz", hash = "sha256:fa619e735878a244332a4bbe16bcfc44e49ff6264c2696056278f0642cdfa223"},
+]
+
+[package.source]
+type = "legacy"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+reference = "proxy-source"
+
+[[package]]
 name = "types-python-dateutil"
 version = "2.9.0.20250809"
 description = "Typing stubs for python-dateutil"
@@ -5578,4 +5613,4 @@ reference = "proxy-source"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "57c0034812a359a75f4e6fba2d38dfbac43eb65867aaa050e041736220b33f67"
+content-hash = "32ab6ff253139b8e02ed22d72b7b0dbe60c5009ef8b0ee42cedfb9d80f4155d2"

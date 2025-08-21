@@ -7,7 +7,8 @@ from lqbot.utils.models import AgentMessage
 
 
 class InformationBase(BaseModel):
-    def summary(self) -> str:
+    def summary(self, **kwargs) -> str:
+        _ = kwargs
         return ""
 
 
@@ -29,6 +30,7 @@ class ToolBase:
     __tool_name__: str = ""
     __tool_description__: str = ""
     __is_async__: bool = False
+    __activate__: bool = True
 
     @staticmethod
     def tool_function(*args, **kwargs) -> Any:

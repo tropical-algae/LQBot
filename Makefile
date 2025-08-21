@@ -7,6 +7,9 @@ SHELL := /bin/bash
 all: clean test install run deploy down
 
 install: generate_dot_env
+	apt-get update
+	apt-get install fonts-noto-color-emoji wkhtmltopdf
+	cp ./asset/font/* /usr/share/fonts
 	pip install --upgrade pip
 	pip install poetry
 	# poetry update

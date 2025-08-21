@@ -1,0 +1,38 @@
+
+
+@font-face {
+  font-family: Nunito;
+  font-weight: 700;
+  font-style: normal;
+  src: url(file:///usr/share/fonts/Nunito-Bold.ttf);
+}
+
+@font-face {
+  font-family: Nunito;
+  font-weight: 400;
+  font-style: normal;
+  src: url(file:///usr/share/fonts/Nunito-Regular.ttf);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  padding: 1rem 1rem;
+}
+
+hr {
+  margin: 2rem 0;
+}
+
+img {
+  border-radius: 0.5rem;
+  width: 2.5rem;
+}
+
+ul {
+  padding-left: 1.5rem;
+}

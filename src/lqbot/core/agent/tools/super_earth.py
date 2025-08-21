@@ -9,6 +9,7 @@ import httpx
 
 from lqbot.core.agent.base import AgentBase, InformationBase, ToolBase
 from lqbot.utils.config import settings
+from lqbot.utils.decorator import exception_handling
 from lqbot.utils.logger import logger
 from lqbot.utils.models import AgentMessage
 from lqbot.utils.util import normalize_date
@@ -25,7 +26,8 @@ class SEDispatches(InformationBase):
     type: int
     message: str
 
-    def summary(self) -> str:
+    def summary(self, **kwargs) -> str:
+        _ = kwargs
         return f"{self.published} 讯息: {self.message}"
 
 
@@ -46,7 +48,8 @@ class SEWarStatistics(InformationBase):
     accuracy: int
     playerCount: int
 
-    def summary(self):
+    def summary(self, **kwargs) -> str:
+        _ = kwargs
         return (
             f"截至目前，已完成任务 {self.missionsWon} 次，失败 {self.missionsLost} 次，"
             f"成功率 {self.missionSuccessRate}% 。累计击杀终结虫 {self.terminidKills} 只，"
@@ -65,7 +68,8 @@ class SEWarSituation(InformationBase):
     impactMultiplier: float
     statistics: SEWarStatistics
 
-    def summary(self):
+    def summary(self, **kwargs) -> str:
+        _ = kwargs
         return f"超级地球战报如下：\n{self.statistics.summary()}"
 
 
@@ -81,54 +85,46 @@ class HelldiversAPIClient:
         }
         self.timeout = timeout
 
+    @exception_handling(default_return="不清楚超级地球的前线讯息")
     async def get_dispatches(self, target_date: dt_date) -> str:
         url = f"{self.BASE_URL}/v2/dispatches"
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(url, headers=self.headers)
-                response.raise_for_status()
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.get(url, headers=self.headers)
+            response.raise_for_status()
 
-                # 转换并查找
-                same_day_items = []
-                data = response.json()
-                for item in data:
-                    pub_dt = datetime.fromisoformat(
-                        item["published"].replace("Z", "+00:00")
-                    )
-                    if pub_dt.date() == target_date:
-                        same_day_items.append(SEDispatches(**item))
+            # 解析日期，获取day匹配的数据
+            same_day_items = []
+            data = response.json()
+            for item in data:
+                pub_dt = datetime.fromisoformat(item["published"].replace("Z", "+00:00"))
+                if pub_dt.date() == target_date:
+                    same_day_items.append(SEDispatches(**item))
 
-                if same_day_items:
-                    result = same_day_items
-                else:
-                    current_item = max(
-                        data,
-                        key=lambda x: datetime.fromisoformat(
-                            x["published"].replace("Z", "+00:00")
-                        ),
-                    )
-                    result = [SEDispatches(**current_item)]
+            # 无匹配数据时取最新
+            if same_day_items:
+                result = same_day_items
+            else:
+                current_item = max(
+                    data,
+                    key=lambda x: datetime.fromisoformat(
+                        x["published"].replace("Z", "+00:00")
+                    ),
+                )
+                result = [SEDispatches(**current_item)]
 
-                return "\n".join([msg.summary() for msg in result])
-        except Exception as err:
-            logger.error(f"绝地遣兵讯息获取错误: {err}")
-            return "不清楚超级地球的前线讯息"
+            return "\n".join([msg.summary() for msg in result])
 
+    @exception_handling(default_return="不清楚超级地球的战况")
     async def get_situation(self) -> str:
         url = f"{self.BASE_URL}/v1/war"
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            response = await client.get(url, headers=self.headers)
+            response.raise_for_status()
 
-        try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
-                response = await client.get(url, headers=self.headers)
-                response.raise_for_status()
+            data = response.json()
 
-                data = response.json()
-
-                situation = SEWarSituation.model_validate(data)
-                return situation.summary()
-        except Exception as err:
-            logger.error(f"绝地遣兵战况获取错误: {err}")
-            return "不清楚超级地球的战况"
+            situation = SEWarSituation.model_validate(data)
+            return situation.summary()
 
 
 hd_client = HelldiversAPIClient(
@@ -138,15 +134,12 @@ hd_client = HelldiversAPIClient(
 
 class SuperEarthTool(ToolBase):
     __tool_name__ = "super_earth_tool"
-    __tool_description__ = (
-        "工具作用：查询超级地球的消息\n"
-        "触发方式：当用户询问超级地球的状态、消息等情况时调用此工具\n"
-    )
+    __tool_description__ = "查询超级地球的 新闻/消息（超级地球是固有名词）"
     __is_async__ = True
 
     @staticmethod
     async def a_tool_function(
-        news_type: Annotated[SENewsType, "消息的类型"],
+        news_type: Annotated[SENewsType, "新闻/消息 的类型"],
         date: Annotated[
             str | None, "消息的日期，使用 ISO 格式，例如 2025-08-20。可以不提供日期"
         ] = None,
@@ -160,7 +153,7 @@ class SuperEarthTool(ToolBase):
         if news_type == SENewsType.SITUATION:
             return await hd_client.get_situation()
 
-        return "不太清楚"
+        return "不太清楚超级地球的消息"
 
     @staticmethod
     def tool_post_processing_function(
