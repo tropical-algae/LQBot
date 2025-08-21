@@ -56,6 +56,9 @@ class ServiceSetting(BaseSettings):
     # 第三方资源收集
     WALLPAPER_API: str = "https://api.anosu.top/img"
     WALLPAPER_R18_API: str = "https://image.anosu.top/pixiv/json"
+    GITHUB_TREND_API: str = (
+        "https://raw.githubusercontent.com/isboyjc/github-trending-api/main/data"
+    )
     AMAP_WEATHER_API: str = "https://restapi.amap.com/v3/weather/weatherInfo"
     AMAP_WEATHER_KEY: str = ""
     HELLDIVERS2_API: str = "https://api.helldivers2.dev/api"
