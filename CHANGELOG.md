@@ -1,5 +1,26 @@
 <!-- version list -->
 
+## v0.0.2 (2025-08-21)
+
+### Documentation
+
+- Add doc, optimize tool description
+  ([`8e3ef05`](https://github.com/tropical-algae/LQBot/commit/8e3ef05d0d99c64f466dc2a34fdbb8c7bbd05b3f))
+
+### Features
+
+- Add github trend summary tool
+  ([`95f27ac`](https://github.com/tropical-algae/LQBot/commit/95f27ac0250bab2fb63c12947545aaa18f4b0bb3))
+
+- Enhance tool robustness with exception handling
+  ([`d13abf2`](https://github.com/tropical-algae/LQBot/commit/d13abf22ad7e1d9674c3d1e000bbbba319124b4c))
+
+### Refactoring
+
+- Optimize the process logic of AgentResource
+  ([`ea853f9`](https://github.com/tropical-algae/LQBot/commit/ea853f94fb2722d16fc79d8f9f0ea78fed482d38))
+
+
 ## v0.0.1 (2025-08-18)
 
 ### Bug Fixes
