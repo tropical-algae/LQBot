@@ -8,14 +8,15 @@ all: clean test install run deploy down
 
 install: generate_dot_env
 	apt-get update
-	apt-get install fonts-noto-color-emoji wkhtmltopdf
+	apt-get install fonts-noto-color-emoji wkhtmltopdf -y
 	cp ./asset/font/* /usr/share/fonts
 	pip install --upgrade pip
-	pip install poetry
+	pip install poetry==1.8.5
 	# poetry update
 	poetry install --with dev
-	pre-commit install
+	poetry run pre-commit install
 	poetry shell
+
 
 activate:
 	poetry shell
