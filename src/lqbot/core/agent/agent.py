@@ -148,8 +148,8 @@ class LQAgent(AgentBase):
             try:
                 tool.tool_post_processing_function(self, result)
                 await tool.a_tool_post_processing_function(self, result)
-            except Exception:
-                logger.error(f"工具 {tool.__tool_name__} 后处理方法运行失败")
+            except Exception as err:
+                logger.error(f"工具 {tool.__tool_name__} 后处理方法运行失败：{err}")
 
         return result
 

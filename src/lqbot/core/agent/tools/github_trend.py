@@ -51,7 +51,7 @@ class CodeLanguageType(str, Enum):
     ALL = "all"
 
 
-class RankingPeriod(str, Enum):
+class PosterRankingPeriod(str, Enum):
     DAILY = "daily"
     WEEKLY = "weekly"
     MONTHLY = "monthly"
@@ -163,10 +163,10 @@ class GithubTrendTool(ToolBase):
     @exception_handling(default_return="github趋势参数分析失败")
     async def a_tool_function(
         language_type: Annotated[CodeLanguageType, "编程语言类型。若未指定则默认是all"],
-        period: Annotated[RankingPeriod, "趋势的统计周期。若未指定则默认是daily"],
+        period: Annotated[PosterRankingPeriod, "趋势的统计周期。若未指定则默认是daily"],
     ) -> str:
         language_type = CodeLanguageType(language_type)
-        period = RankingPeriod(period)
+        period = PosterRankingPeriod(period)
         url = f"{settings.GITHUB_TREND_API}/{period.value}/{language_type.value}.json"
         await url_queue.put(url)
 

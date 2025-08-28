@@ -7,7 +7,7 @@ from lqbot.utils.logger import logger
 
 class LocaltimeTool(ToolBase):
     __tool_name__ = "check_time"
-    __tool_description__ = "检查当前时间"
+    __tool_description__ = "获取当前时间"
     __is_async__ = False
 
     @staticmethod

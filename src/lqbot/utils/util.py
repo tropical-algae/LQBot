@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Any, Literal
 
 import yaml
-from dateutil import parser
 from PIL import Image
 
 from lqbot.utils.logger import logger
@@ -176,18 +175,14 @@ def split_sentence_en(text: str, strip_punct: bool) -> list[str]:
     return [strip_trailing_punct(line, "en") if strip_punct else line for line in lines]
 
 
-def normalize_date(user_input: str | None, default_today: bool = True) -> Any:
-    if not user_input:
-        return dt_date.today() if default_today else None
-    try:
-        parsed = parser.parse(user_input)
-        return parsed.date()
-    except (ValueError, TypeError):
-        return dt_date.today() if default_today else None
-
-
 def handle_task_result(task: asyncio.Task):
     try:
         task.result()
     except Exception as err:
         logger.error(f"任务异常: {err}")
+
+
+def cut_text(text: str, max_len: int = 14) -> str:
+    if len(text) > 14:
+        return f"{text[:max_len]}..."
+    return text
