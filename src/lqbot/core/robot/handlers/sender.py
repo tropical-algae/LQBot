@@ -7,6 +7,7 @@ from lqbot.core.agent.agent import agent
 from lqbot.utils.config import settings
 from lqbot.utils.logger import logger
 from lqbot.utils.models import AgentMessage, GroupMessageData, MessageType, QUserData
+from lqbot.utils.util import cut_text
 
 
 async def send_group_message(
@@ -18,7 +19,7 @@ async def send_group_message(
 ) -> None:
     text_abs = text
     if text_type == MessageType.TEXT:
-        text_abs = f"{text[:14]}..."
+        text_abs = cut_text(text)
         await api.post_group_msg(group_id=group_id, text=text, **kwargs)
     elif text_type == MessageType.VOICE:
         await api.post_group_file(group_id=group_id, record=text, **kwargs)

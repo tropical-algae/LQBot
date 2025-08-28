@@ -21,7 +21,6 @@ class NameSetting(BaseSettings):
 
 class PromptSetting(BaseSettings):
     AGENT_PROMPT: str = ""
-    PLUGIN_SCHEDULE_AM_GREET_PROMPT: str = ""
 
 
 class ServiceSetting(BaseSettings):

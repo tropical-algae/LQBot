@@ -18,7 +18,7 @@ from lqbot.core.robot.trigger import (
 from lqbot.utils.config import settings
 from lqbot.utils.logger import logger
 from lqbot.utils.models import GroupMessageData, QUserData
-from lqbot.utils.util import handle_task_result
+from lqbot.utils.util import cut_text, handle_task_result
 
 bot = CompatibleEnrollment
 
@@ -44,19 +44,18 @@ class GroupBotPlugin(BasePlugin):
 
     @bot.group_event()
     async def on_group_event(self, msg: GroupMessage):
-        if msg.post_type != "message":
-            logger.warning("非文本消息，跳过")
-            return
-
         user_msg = await GroupMessageData.from_group_message(
             data=msg, from_bot=False, api=self.api
         )
 
+        if (msg.post_type != "message") or (not user_msg.content):
+            logger.warning("非有效消息消息，跳过")
+            return
+
         group_id = user_msg.group_id
         sender_id = user_msg.sender.id
         sender_name = user_msg.sender.nickname
-        msg_abs = f"{user_msg.content[:14]}..."
-        logger.info(f"[GROUP {group_id}][{sender_name}]: {msg_abs}")
+        logger.info(f"[GROUP {group_id}][{sender_name}]: {cut_text(user_msg.content)}")
 
         for handler in self.group_command:
             if await handler(api=self.api, message=user_msg, origin_msg=msg):
