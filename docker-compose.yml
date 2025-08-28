@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   napcat:
     image: docker.1ms.run/mlikiowa/napcat-docker:latest
@@ -14,16 +12,16 @@ services:
       - "3001:3001"
       - "6099:6099"
     volumes:
-      - /data/lqbot/cache:${CACHE_ROOT}
-      - /data/lqbot/napcat:/data/napcat/cache
+      - /mnt/docker/lqbot/cache:${CACHE_ROOT}
+      - /mnt/docker/lqbot/napcat:/data/napcat/cache
 
   lqbot:
-    image: lqbot:0.1.0
+    image: lqbot:${VERSION}
     container_name: lqbot
     restart: unless-stopped
     depends_on:
       - napcat
     volumes:
-      - /data/lqbot/cache:${CACHE_ROOT}
-      - /data/lqbot/configs:${CONFIG_ROOT}
-      - /data/lqbot/log:${LOG_ROOT}
+      - /mnt/docker/lqbot/cache:${CACHE_ROOT}
+      - /mnt/docker/lqbot/config:${CONFIG_ROOT}
+      - /mnt/docker/lqbot/log:${LOG_ROOT}

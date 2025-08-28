@@ -1,3 +1,7 @@
+# 该配置与.env配置项基本一致（仅文件Path无法配置）
+# 该文件存在的目的是支持用户docker部署后动态调整配置
+# 修改后重启容器生效（暂不支持热更新）
+
 BASE_URL: ""
 API_KEY: ""
 DEFAULT_MODEL: "gpt-4.1-nano"
